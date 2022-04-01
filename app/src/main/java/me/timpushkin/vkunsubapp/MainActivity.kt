@@ -4,20 +4,17 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.auth.VKAuthenticationResult
 import com.vk.api.sdk.auth.VKScope
+import me.timpushkin.vkunsubapp.ui.MainScreen
 import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
 
 private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
+    private val applicationState = ApplicationState()
+
     private val authLauncher = VK.login(this) { result ->
         when (result) {
             is VKAuthenticationResult.Success -> Log.i(TAG, "Login succeeded")
@@ -32,18 +29,27 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VkUnsubAppTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    Greeting("Android")
-                }
+                MainScreen(
+                    applicationState = applicationState,
+                    onOpenCommunity = this::openCommunity,
+                    onApplySelectedCommunities = this::applySelectedCommunities
+                )
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
+    private fun openCommunity() {
+        Log.i(TAG, "Opening ${applicationState.displayedCommunity}")
+        // TODO
+    }
+
+    private fun applySelectedCommunities() {
+        when (applicationState.mode) {
+            ApplicationState.Mode.FOLLOWING ->
+                Log.i(TAG, "Unfollowing ${applicationState.selectedCommunities}")
+            ApplicationState.Mode.UNFOLLOWED ->
+                Log.i(TAG, "Starting to follow ${applicationState.selectedCommunities}")
+        }
+        // TODO
+    }
 }

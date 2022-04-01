@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VkUnsubApp</string>
+    <string name="communities">Сообщества</string>
+    <plurals name="subscribers_num">
+        <item quantity="one">%d подписчик</item>
+        <item quantity="few">%d подписчика</item>
+        <item quantity="many">%d подписчиков</item>
+        <item quantity="other">%d подписчиков</item>
+    </plurals>
+    <plurals name="friends_num">
+        <item quantity="one">%d друг</item>
+        <item quantity="few">%d друга</item>
+        <item quantity="many">%d друзей</item>
+        <item quantity="other">%d друзей</item>
+    </plurals>
+    <string name="last_post">Последняя запись %s</string>
+    <string name="open">Открыть</string>
+    <string name="hold_to_see_more">Коснитесь и удерживайте, чтобы увидеть информацию о сообществе</string>
+    <string name="subscribe_to_communities">Подписаться на сообщества</string>
+    <string name="unsubscribe_from_communities">Отписаться от сообществ</string>
+    <string name="follow">Подписаться</string>
+    <string name="unfollow">Отписаться</string>
+</resources>

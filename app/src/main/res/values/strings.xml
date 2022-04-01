@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">VkUnsubApp</string>
+    <string name="communities">Communities</string>
+    <plurals name="subscribers_num">
+        <item quantity="one">%d subscriber</item>
+        <item quantity="other">%d subscribers</item>
+    </plurals>
+    <plurals name="friends_num">
+        <item quantity="one">%d friend</item>
+        <item quantity="other">%d friends</item>
+    </plurals>
+    <string name="last_post">Last post %s</string>
+    <string name="open">Open</string>
+    <string name="hold_to_see_more">Tap and hold to see more information about a community</string>
+    <string name="subscribe_to_communities">Subscribe to communities</string>
+    <string name="unsubscribe_from_communities">Unsubscribe from communities</string>
+    <string name="follow">Subscribe</string>
+    <string name="unfollow">Unsubscribe</string>
 </resources>
