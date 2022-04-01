@@ -1,6 +1,7 @@
 package me.timpushkin.vkunsubapp.ui
 
-import androidx.compose.foundation.Image
+import android.net.Uri
+import android.view.View
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,17 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.facebook.drawee.view.SimpleDraweeView
 import me.timpushkin.vkunsubapp.R
+import kotlin.math.sqrt
 
 @Composable
 fun CommunityCell(
     name: String,
-    image: ImageBitmap,
+    photoUri: Uri,
     isSelected: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -32,14 +35,15 @@ fun CommunityCell(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box {
-            Image(
-                bitmap = image,
-                contentDescription = "Community image",
+        Box(contentAlignment = Alignment.Center) {
+            AndroidView(
+                factory = { context ->
+                    (View.inflate(context, R.layout.community_photo, null) as SimpleDraweeView)
+                        .apply { setImageURI(photoUri, context) }
+                },
                 modifier = Modifier
                     .aspectRatio(1f)
                     .clip(CircleShape)
-                    .align(Alignment.Center)
                     .apply {
                         if (isSelected)
                             border(
@@ -51,22 +55,25 @@ fun CommunityCell(
                                 color = MaterialTheme.colors.primary,
                                 shape = CircleShape
                             )
-                    },
-                contentScale = ContentScale.Crop
+                    }
             )
 
-            Icon(
-                painter = painterResource(R.drawable.ic_check_circle_on_28),
-                contentDescription = "Selected",
-                modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colors.background,
-                        shape = CircleShape
-                    )
-                    .offset(x = 20.dp, y = 20.dp), // TODO: check it
-                tint = MaterialTheme.colors.primary
-            )
+            if (isSelected) {
+                val iconOffset = dimensionResource(R.dimen.community_photo_size).value / sqrt(2.0)
+
+                Icon(
+                    painter = painterResource(R.drawable.ic_check_circle_on_28),
+                    contentDescription = "Selected",
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colors.background,
+                            shape = CircleShape
+                        )
+                        .offset(x = iconOffset.dp, y = iconOffset.dp),
+                    tint = MaterialTheme.colors.primary
+                )
+            }
         }
 
         Text(

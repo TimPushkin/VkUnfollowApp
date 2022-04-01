@@ -1,17 +1,17 @@
 package me.timpushkin.vkunsubapp.model
 
-import androidx.compose.ui.graphics.ImageBitmap
+import android.net.Uri
 
 data class Community(
-    val id: Int,
+    val id: Long,
     val name: String,
-    val image: ImageBitmap,
+    val photoUri: Uri,
     val subscribersNum: Int = 0,
     val friendsNum: Int = 0,
     val description: String = "",
-    val lastPost: Long = 0
+    val lastPost: Int? = null
 ) {
     companion object {
-        val EMPTY = Community(-1, "", ImageBitmap(0, 0))
+        val EMPTY = Community(-1, "", Uri.EMPTY)
     }
 }

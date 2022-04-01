@@ -69,22 +69,24 @@ fun CommunityInfoSheet(
             text = community.description
         )
 
-        IconRow(
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_newsfeed_outline_28),
-                    contentDescription = "Last post date"
-                )
-            },
-            text = stringResource(
-                R.string.last_post,
-                DateUtils.formatDateTime(
-                    LocalContext.current,
-                    community.lastPost,
-                    DateUtils.FORMAT_SHOW_DATE
+        if (community.lastPost != null) {
+            IconRow(
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_newsfeed_outline_28),
+                        contentDescription = "Last post date"
+                    )
+                },
+                text = stringResource(
+                    R.string.last_post,
+                    DateUtils.formatDateTime(
+                        LocalContext.current,
+                        community.lastPost.toLong(),
+                        DateUtils.FORMAT_SHOW_DATE
+                    )
                 )
             )
-        )
+        }
 
         Spacer(modifier = Modifier.height(5.dp))
 

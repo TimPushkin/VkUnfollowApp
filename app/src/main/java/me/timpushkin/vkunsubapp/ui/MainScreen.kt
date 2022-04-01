@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,8 @@ fun MainScreen(
     onOpenCommunity: () -> Unit = {},
     onApplySelectedCommunities: () -> Unit = {}
 ) {
+    if (applicationState.mode == ApplicationState.Mode.AUTH) return
+
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
@@ -40,27 +43,41 @@ fun MainScreen(
             topBar = {
                 TopBar(
                     mode = applicationState.mode,
-                    onButtonClick = applicationState::switchMode
+                    onButtonClick = {
+                        when (applicationState.mode) {
+                            ApplicationState.Mode.AUTH -> {}
+                            ApplicationState.Mode.FOLLOWING ->
+                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                            ApplicationState.Mode.UNFOLLOWED ->
+                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+                        }
+                    }
                 )
             }
         ) { contentPadding ->
-            CommunitiesGrid(
-                communities = applicationState.communities,
-                modifier = Modifier.padding(contentPadding),
-                onCellClick = {
-                    applicationState.displayedCommunity = it
-                    scope.launch { sheetState.show() }
-                },
-                onCellLongClick = { applicationState.selectOrUnselect(it) }
-            )
-
-            val selectedNum = applicationState.selectedCommunities.size
-            if (selectedNum > 0) {
-                ApplySelectedCommunitiesButton(
-                    mode = applicationState.mode,
-                    selectedNum = selectedNum,
-                    onClick = onApplySelectedCommunities
+            Box(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxSize()
+            ) {
+                CommunitiesGrid(
+                    communities = applicationState.communities,
+                    onCellClick = {
+                        applicationState.displayedCommunity = it
+                        scope.launch { sheetState.show() }
+                    },
+                    onCellLongClick = { applicationState.selectOrUnselect(it) }
                 )
+
+                val selectedNum = applicationState.selectedCommunities.size
+                if (selectedNum > 0) {
+                    ApplySelectedCommunitiesButton(
+                        mode = applicationState.mode,
+                        selectedNum = selectedNum,
+                        onClick = onApplySelectedCommunities,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             }
         }
     }
@@ -78,6 +95,7 @@ fun TopBar(mode: ApplicationState.Mode, onButtonClick: () -> Unit) {
         actions = {
             IconButton(onClick = onButtonClick) {
                 when (mode) {
+                    ApplicationState.Mode.AUTH -> {}
                     ApplicationState.Mode.FOLLOWING ->
                         Icon(
                             painter = painterResource(R.drawable.ic_clock_outline_28),
@@ -99,13 +117,15 @@ fun TopBar(mode: ApplicationState.Mode, onButtonClick: () -> Unit) {
 fun ApplySelectedCommunitiesButton(
     mode: ApplicationState.Mode,
     selectedNum: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = onClick,
         modifier = Modifier
             .padding(5.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .then(modifier),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = MaterialTheme.colors.primary,
             contentColor = MaterialTheme.colors.onPrimary
@@ -113,12 +133,12 @@ fun ApplySelectedCommunitiesButton(
     ) {
         Row {
             Text(
-                text = stringResource(
-                    when (mode) {
-                        ApplicationState.Mode.FOLLOWING -> R.string.unfollow
-                        ApplicationState.Mode.UNFOLLOWED -> R.string.follow
-                    }
-                )
+                text =
+                when (mode) {
+                    ApplicationState.Mode.AUTH -> ""
+                    ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
+                    ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
+                }
             )
 
             Spacer(modifier = Modifier.width(2.dp))

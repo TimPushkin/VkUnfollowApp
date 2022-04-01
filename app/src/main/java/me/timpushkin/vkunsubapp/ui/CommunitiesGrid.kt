@@ -10,8 +10,10 @@ import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import me.timpushkin.vkunsubapp.model.Community
+import me.timpushkin.vkunsubapp.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -22,7 +24,7 @@ fun CommunitiesGrid(
     onCellLongClick: (Community) -> Unit = {}
 ) {
     LazyVerticalGrid(
-        cells = GridCells.Adaptive(128.dp),
+        cells = GridCells.Adaptive(dimensionResource(R.dimen.community_photo_size)),
         modifier = Modifier
             .fillMaxSize()
             .then(modifier),
@@ -33,7 +35,7 @@ fun CommunitiesGrid(
 
             CommunityCell(
                 name = community.name,
-                image = community.image,
+                photoUri = community.photoUri,
                 isSelected = isSelected,
                 modifier = Modifier
                     .padding(5.dp)

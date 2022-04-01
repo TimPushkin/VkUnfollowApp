@@ -17,8 +17,11 @@ class MainActivity : ComponentActivity() {
 
     private val authLauncher = VK.login(this) { result ->
         when (result) {
-            is VKAuthenticationResult.Success -> Log.i(TAG, "Login succeeded")
-            is VKAuthenticationResult.Failed -> Log.i(TAG, "Login failed")
+            is VKAuthenticationResult.Success -> {
+                Log.i(TAG, "Authorization succeeded")
+                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+            }
+            is VKAuthenticationResult.Failed -> Log.i(TAG, "Authorization failed")
         }
     }
 
@@ -45,6 +48,8 @@ class MainActivity : ComponentActivity() {
 
     private fun applySelectedCommunities() {
         when (applicationState.mode) {
+            ApplicationState.Mode.AUTH ->
+                Log.e(TAG, "Cannot apply selected communities when unauthorized")
             ApplicationState.Mode.FOLLOWING ->
                 Log.i(TAG, "Unfollowing ${applicationState.selectedCommunities}")
             ApplicationState.Mode.UNFOLLOWED ->
