@@ -3,7 +3,6 @@ package me.timpushkin.vkunsubapp.ui
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
@@ -26,9 +25,7 @@ fun CommunitiesGrid(
 ) {
     LazyVerticalGrid(
         cells = GridCells.Adaptive(dimensionResource(R.dimen.community_photo_size)),
-        modifier = Modifier
-            .fillMaxSize()
-            .then(modifier),
+        modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         items(communities) { community ->

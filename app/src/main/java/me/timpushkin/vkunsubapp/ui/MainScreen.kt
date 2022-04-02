@@ -1,9 +1,9 @@
 package me.timpushkin.vkunsubapp.ui
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,44 +51,49 @@ fun MainScreen(
                         }
                     }
                 )
-            }
-        ) { contentPadding ->
-            Box(
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .fillMaxSize()
-            ) {
-                CommunitiesGrid(
-                    communities = applicationState.communities,
-                    selectedCommunities = applicationState.selectedCommunities,
-                    onCellClick = {
-                        applicationState.displayedCommunity = it
-                        scope.launch { sheetState.show() }
-                    },
-                    onCellLongClick = { applicationState.selectOrUnselect(it) }
-                )
-
+            },
+            bottomBar = {
                 val selectedNum = applicationState.selectedCommunities.size
-                if (selectedNum > 0) {
-                    CounterButton(
-                        number = selectedNum,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .padding(5.dp),
-                        onClick = onApplySelectedCommunities
+
+                AnimatedVisibility(
+                    visible = selectedNum > 0,
+                    enter = slideInVertically { fullHeight -> fullHeight / 2 },
+                    exit = slideOutVertically { fullHeight -> fullHeight / 2 }
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colors.background
                     ) {
-                        Text(
-                            text =
-                            when (applicationState.mode) {
-                                ApplicationState.Mode.AUTH -> ""
-                                ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
-                                ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
-                            }
-                        )
+                        CounterButton(
+                            number = selectedNum,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            onClick = onApplySelectedCommunities
+                        ) {
+                            Text(
+                                text =
+                                when (applicationState.mode) {
+                                    ApplicationState.Mode.AUTH -> ""
+                                    ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
+                                    ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
+                                }
+                            )
+                        }
                     }
                 }
             }
+        ) { contentPadding ->
+            CommunitiesGrid(
+                communities = applicationState.communities,
+                selectedCommunities = applicationState.selectedCommunities,
+                modifier = Modifier.padding(contentPadding),
+                onCellClick = {
+                    applicationState.displayedCommunity = it
+                    scope.launch { sheetState.show() }
+                },
+                onCellLongClick = { applicationState.selectOrUnselect(it) }
+            )
         }
     }
 }
