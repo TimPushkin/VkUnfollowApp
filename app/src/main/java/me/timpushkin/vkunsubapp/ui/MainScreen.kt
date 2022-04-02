@@ -2,6 +2,7 @@ package me.timpushkin.vkunsubapp.ui
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -33,6 +34,11 @@ fun MainScreen(
             )
         },
         modifier = Modifier.fillMaxSize(),
+        sheetState = sheetState,
+        sheetShape = MaterialTheme.shapes.large.copy(
+            bottomStart = CornerSize(0),
+            bottomEnd = CornerSize(0)
+        ),
         sheetElevation = 8.dp,
         sheetBackgroundColor = MaterialTheme.colors.background
     ) {

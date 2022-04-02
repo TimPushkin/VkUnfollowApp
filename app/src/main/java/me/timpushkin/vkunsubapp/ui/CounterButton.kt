@@ -31,10 +31,13 @@ fun CounterButton(
             contentColor = MaterialTheme.colors.onPrimary
         )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             content()
 
-            Spacer(modifier = Modifier.width(5.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             Box(
                 modifier = Modifier
@@ -44,8 +47,8 @@ fun CounterButton(
                     )
                     .layout { measurable, constraints ->
                         val placeable = measurable.measure(constraints)
-                        val width = maxOf(placeable.width, placeable.height)
-                        val height = placeable.height
+                        val height = (placeable.height * 1.3).toInt()
+                        val width = maxOf(placeable.width, height)
                         layout(width, height) {
                             placeable.placeRelative(
                                 (width - placeable.width) / 2,
