@@ -19,6 +19,7 @@ import me.timpushkin.vkunsubapp.R
 @Composable
 fun CommunitiesGrid(
     communities: List<Community>,
+    selectedCommunities: Iterable<Community>,
     modifier: Modifier = Modifier,
     onCellClick: (Community) -> Unit = {},
     onCellLongClick: (Community) -> Unit = {}
@@ -31,20 +32,15 @@ fun CommunitiesGrid(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         items(communities) { community ->
-            var isSelected by remember { mutableStateOf(false) }
-
             CommunityCell(
                 name = community.name,
                 photoUri = community.photoUri,
-                isSelected = isSelected,
+                isSelected = community in selectedCommunities,
                 modifier = Modifier
                     .padding(5.dp)
                     .combinedClickable(
                         onClick = { onCellClick(community) },
-                        onLongClick = {
-                            isSelected = !isSelected
-                            onCellLongClick(community)
-                        }
+                        onLongClick = { onCellLongClick(community) }
                     )
             )
         }

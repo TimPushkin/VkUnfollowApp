@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.facebook.drawee.view.SimpleDraweeView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/community_photo"
+    android:id="@+id/drawee"
     android:layout_width="@dimen/community_photo_size"
     android:layout_height="@dimen/community_photo_size"
-    fresco:actualImageScaleType="centerCrop"
-    fresco:roundAsCircle="true" />
+    fresco:actualImageScaleType="centerCrop" />

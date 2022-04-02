@@ -7,12 +7,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunsubapp.ApplicationState
 import me.timpushkin.vkunsubapp.R
+import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -62,6 +66,7 @@ fun MainScreen(
             ) {
                 CommunitiesGrid(
                     communities = applicationState.communities,
+                    selectedCommunities = applicationState.selectedCommunities,
                     onCellClick = {
                         applicationState.displayedCommunity = it
                         scope.launch { sheetState.show() }
@@ -131,7 +136,7 @@ fun ApplySelectedCommunitiesButton(
             contentColor = MaterialTheme.colors.onPrimary
         )
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text =
                 when (mode) {
@@ -141,7 +146,7 @@ fun ApplySelectedCommunitiesButton(
                 }
             )
 
-            Spacer(modifier = Modifier.width(2.dp))
+            Spacer(modifier = Modifier.width(5.dp))
 
             Box(
                 modifier = Modifier
@@ -149,10 +154,38 @@ fun ApplySelectedCommunitiesButton(
                         color = MaterialTheme.colors.onPrimary,
                         shape = CircleShape
                     )
-                    .size(5.dp)
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        val width = maxOf(placeable.width, placeable.height)
+                        val height = placeable.height
+                        layout(width, height) {
+                            placeable.placeRelative(
+                                (width - placeable.width) / 2,
+                                (height - placeable.height) / 2
+                            )
+                        }
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = selectedNum.toString(10))
+                Text(
+                    text = selectedNum.toString(10),
+                    modifier = Modifier.padding(start = 5.dp, end = 5.dp),
+                    color = MaterialTheme.colors.primary,
+                    textAlign = TextAlign.Center
+                )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun ApplySelectedCommunitiesButtonPreview() {
+    VkUnsubAppTheme {
+        ApplySelectedCommunitiesButton(
+            mode = ApplicationState.Mode.FOLLOWING,
+            selectedNum = 1,
+            onClick = {}
+        )
     }
 }
