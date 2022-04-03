@@ -17,8 +17,8 @@
     <string name="last_post">Последняя запись %s</string>
     <string name="open">Открыть</string>
     <string name="hold_to_see_more">Коснитесь и удерживайте, чтобы увидеть информацию о сообществе</string>
-    <string name="subscribe_to_communities">Подписаться на сообщества</string>
-    <string name="unsubscribe_from_communities">Отписаться от сообществ</string>
+    <string name="follow_communities">Подписаться на сообщества</string>
+    <string name="unfollow_communities">Отписаться от сообществ</string>
     <string name="follow">Подписаться</string>
     <string name="unfollow">Отписаться</string>
 </resources>

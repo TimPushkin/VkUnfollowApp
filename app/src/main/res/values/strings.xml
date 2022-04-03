@@ -12,8 +12,8 @@
     <string name="last_post">Last post %s</string>
     <string name="open">Open</string>
     <string name="hold_to_see_more">Tap and hold to see more information about a community</string>
-    <string name="subscribe_to_communities">Subscribe to communities</string>
-    <string name="unsubscribe_from_communities">Unsubscribe from communities</string>
-    <string name="follow">Subscribe</string>
-    <string name="unfollow">Unsubscribe</string>
+    <string name="follow_communities">Follow communities</string>
+    <string name="unfollow_communities">Unfollow communities</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
 </resources>

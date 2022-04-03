@@ -1,13 +1,16 @@
 package me.timpushkin.vkunsubapp.ui
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunsubapp.ApplicationState
@@ -42,58 +45,49 @@ fun MainScreen(
         sheetElevation = 8.dp,
         sheetBackgroundColor = MaterialTheme.colors.background
     ) {
-        Scaffold(
+        CollapsibleTopScaffold(
             modifier = Modifier.fillMaxSize(),
-            topBar = {
-                TopBar(
-                    mode = applicationState.mode,
-                    onButtonClick = {
-                        when (applicationState.mode) {
-                            ApplicationState.Mode.AUTH -> {}
-                            ApplicationState.Mode.FOLLOWING ->
-                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
-                            ApplicationState.Mode.UNFOLLOWED ->
-                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-                        }
+            minTopBarHeight = 56.dp,
+            maxTopBarHeight = 168.dp,
+            expandedTopBar = {
+                BigTopBar(
+                    title = when (applicationState.mode) {
+                        ApplicationState.Mode.AUTH -> ""
+                        ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow_communities)
+                        ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow_communities)
+                    },
+                    description = stringResource(R.string.hold_to_see_more),
+                    actions = {
+                        ModeSwitchButton(
+                            mode = applicationState.mode,
+                            onSwitchedToFollowing = { applicationState.setMode(ApplicationState.Mode.FOLLOWING) },
+                            onSwitchToUnfollowed = { applicationState.setMode(ApplicationState.Mode.UNFOLLOWED) }
+                        )
+                    }
+                )
+            },
+            shrunkTopBar = {
+                SmallTopBar(
+                    actions = {
+                        ModeSwitchButton(
+                            mode = applicationState.mode,
+                            onSwitchedToFollowing = { applicationState.setMode(ApplicationState.Mode.FOLLOWING) },
+                            onSwitchToUnfollowed = { applicationState.setMode(ApplicationState.Mode.UNFOLLOWED) }
+                        )
                     }
                 )
             },
             bottomBar = {
-                val selectedNum = applicationState.selectedCommunities.size
-
-                AnimatedVisibility(
-                    visible = selectedNum > 0,
-                    enter = slideInVertically { fullHeight -> fullHeight / 2 },
-                    exit = slideOutVertically { fullHeight -> fullHeight / 2 }
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colors.background
-                    ) {
-                        CounterButton(
-                            number = selectedNum,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            onClick = onApplySelectedCommunities
-                        ) {
-                            Text(
-                                text =
-                                when (applicationState.mode) {
-                                    ApplicationState.Mode.AUTH -> ""
-                                    ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
-                                    ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
-                                }
-                            )
-                        }
-                    }
-                }
+                BottomBar(
+                    mode = applicationState.mode,
+                    selectedNum = applicationState.selectedCommunities.size,
+                    onButtonClick = onApplySelectedCommunities
+                )
             }
-        ) { contentPadding ->
+        ) {
             CommunitiesGrid(
                 communities = applicationState.communities,
                 selectedCommunities = applicationState.selectedCommunities,
-                modifier = Modifier.padding(contentPadding),
                 onCellClick = {
                     applicationState.displayedCommunity = it
                     scope.launch { sheetState.show() }
@@ -105,7 +99,51 @@ fun MainScreen(
 }
 
 @Composable
-fun TopBar(mode: ApplicationState.Mode, onButtonClick: () -> Unit) {
+fun BigTopBar(
+    title: String,
+    description: String,
+    actions: @Composable RowScope.() -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .padding(4.dp)
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions
+        )
+
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = description,
+                modifier = Modifier.fillMaxWidth(0.63f),
+                color = MaterialTheme.colors.primaryVariant,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.body1
+            )
+        }
+    }
+}
+
+@Composable
+fun SmallTopBar(
+    actions: @Composable RowScope.() -> Unit
+) {
     TopAppBar(
         title = {
             Text(
@@ -113,23 +151,71 @@ fun TopBar(mode: ApplicationState.Mode, onButtonClick: () -> Unit) {
                 style = MaterialTheme.typography.h6
             )
         },
-        actions = {
-            IconButton(onClick = onButtonClick) {
-                when (mode) {
-                    ApplicationState.Mode.AUTH -> {}
-                    ApplicationState.Mode.FOLLOWING ->
-                        Icon(
-                            painter = painterResource(R.drawable.ic_clock_outline_28),
-                            contentDescription = "See unfollowed"
-                        )
-                    ApplicationState.Mode.UNFOLLOWED ->
-                        Icon(
-                            painter = painterResource(R.drawable.ic_users_3_outline_28),
-                            contentDescription = "See following"
-                        )
-                }
-            }
-        },
+        actions = actions,
         backgroundColor = MaterialTheme.colors.background
     )
+}
+
+@Composable
+fun ModeSwitchButton(
+    mode: ApplicationState.Mode,
+    onSwitchedToFollowing: () -> Unit,
+    onSwitchToUnfollowed: () -> Unit
+) {
+    IconButton(
+        onClick = {
+            when (mode) {
+                ApplicationState.Mode.AUTH -> {}
+                ApplicationState.Mode.FOLLOWING -> onSwitchToUnfollowed()
+                ApplicationState.Mode.UNFOLLOWED -> onSwitchedToFollowing()
+            }
+        }
+    ) {
+        when (mode) {
+            ApplicationState.Mode.AUTH -> {}
+            ApplicationState.Mode.FOLLOWING ->
+                Icon(
+                    painter = painterResource(R.drawable.ic_clock_outline_28),
+                    contentDescription = "See unfollowed",
+                    tint = MaterialTheme.colors.secondary
+                )
+            ApplicationState.Mode.UNFOLLOWED ->
+                Icon(
+                    painter = painterResource(R.drawable.ic_users_3_outline_28),
+                    contentDescription = "See following",
+                    tint = MaterialTheme.colors.secondary
+                )
+        }
+    }
+}
+
+@Composable
+fun BottomBar(mode: ApplicationState.Mode, selectedNum: Int, onButtonClick: () -> Unit) {
+    AnimatedVisibility(
+        visible = selectedNum > 0,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.background
+        ) {
+            CounterButton(
+                number = selectedNum,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                onClick = onButtonClick
+            ) {
+                Text(
+                    text =
+                    when (mode) {
+                        ApplicationState.Mode.AUTH -> ""
+                        ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
+                        ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
+                    }
+                )
+            }
+        }
+    }
 }
