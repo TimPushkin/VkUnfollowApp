@@ -34,11 +34,15 @@ fun CollapsibleTopScaffold(
         val maxTopBarHeightPx = with(LocalDensity.current) { maxTopBarHeight.roundToPx().toFloat() }
 
         var topBarHeightPx by remember { mutableStateOf(maxTopBarHeightPx) }
+        var contentOffsetPx by remember { mutableStateOf(maxTopBarHeightPx) }
         val nestedScrollConnection = remember {
             object : NestedScrollConnection {
                 override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    topBarHeightPx = (topBarHeightPx + available.y / 1.5f)
-                        .coerceIn(minTopBarHeightPx, maxTopBarHeightPx)
+                    if (contentOffsetPx >= minTopBarHeightPx)
+                        topBarHeightPx = (topBarHeightPx + available.y / 1.5f)
+                            .coerceIn(minTopBarHeightPx, maxTopBarHeightPx)
+                    contentOffsetPx = (contentOffsetPx + available.y / 1.5f)
+                        .coerceIn(0f, maxTopBarHeightPx)
                     return Offset.Zero
                 }
             }
@@ -52,6 +56,11 @@ fun CollapsibleTopScaffold(
         ) {
             val topBarHeight = with(LocalDensity.current) { topBarHeightPx.toDp() }
             val isExpanded = topBarHeightPx > minTopBarHeightPx
+
+            Box(
+                modifier = Modifier.offset(y = with(LocalDensity.current) { contentOffsetPx.toDp() }),
+                content = content
+            )
 
             Box(
                 modifier = Modifier
@@ -72,11 +81,6 @@ fun CollapsibleTopScaffold(
                     content = expandedTopBar
                 )
             }
-
-            Box(
-                modifier = Modifier.offset(y = with(LocalDensity.current) { topBarHeightPx.toDp() }),
-                content = content
-            )
         }
     }
 }

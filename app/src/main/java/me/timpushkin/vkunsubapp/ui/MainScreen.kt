@@ -106,9 +106,9 @@ fun BigTopBar(
 ) {
     Box(
         modifier = Modifier
-            .padding(4.dp)
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
+            .padding(start = 4.dp, top = 4.dp, end = 4.dp)
     ) {
         Row(
             Modifier.fillMaxWidth(),
