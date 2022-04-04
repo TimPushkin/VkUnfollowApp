@@ -2,6 +2,7 @@ package me.timpushkin.vkunsubapp.ui
 
 import android.text.format.DateUtils
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import me.timpushkin.vkunsubapp.R
 import me.timpushkin.vkunsubapp.model.Community
 import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
+import java.util.*
 
 @Composable
 fun CommunityInfoSheet(
@@ -26,7 +28,7 @@ fun CommunityInfoSheet(
 ) {
     val res = LocalContext.current.resources
 
-    Column(modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)) {
+    Column(modifier = Modifier.padding(15.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -34,42 +36,50 @@ fun CommunityInfoSheet(
         ) {
             Text(
                 text = community.name,
+                modifier = Modifier.weight(1f),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 style = MaterialTheme.typography.h6
             )
 
-            IconButton(onClick = onCloseClick) {
-                Icon(
-                    painter = painterResource(
-                        if (isSystemInDarkTheme()) R.drawable.ic_dismiss_dark_24
-                        else R.drawable.ic_dismiss_24
-                    ),
-                    contentDescription = "Close community info",
-                    tint = MaterialTheme.colors.secondary
-                )
-            }
+            Spacer(modifier = Modifier.width(15.dp))
+
+            Icon(
+                painter = painterResource(
+                    if (isSystemInDarkTheme()) R.drawable.ic_dismiss_dark_24
+                    else R.drawable.ic_dismiss_24
+                ),
+                contentDescription = "Close community information",
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable(onClick = onCloseClick),
+                tint = MaterialTheme.colors.secondary
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        IconTextRow(
-            resId = R.drawable.ic_rss_feed_outline_28,
-            text = res.getQuantityString(
-                R.plurals.subscribers_num,
-                community.subscribersNum,
-                community.subscribersNum
-            ) + if (community.friendsNum > 0) " • " + res.getQuantityString(
-                R.plurals.friends_num,
-                community.friendsNum,
-                community.friendsNum
-            ) else ""
-        )
-
-        if (community.description.isNotBlank()) {
+        if (community.subscribersNum != null) {
             IconTextRow(
-                resId = R.drawable.ic_article_outline_28,
-                text = community.description
+                resId = R.drawable.ic_rss_feed_outline_28,
+                text = res.getQuantityString(
+                    R.plurals.subscribers_num,
+                    community.subscribersNum,
+                    community.subscribersNum
+                ) + if (community.friendsNum?.let { it > 0 } == true)
+                    " • " + res.getQuantityString(
+                        R.plurals.friends_num,
+                        community.friendsNum,
+                        community.friendsNum
+                    ) else ""
+            )
+        }
+
+        if (community.description?.isNotBlank() == true) {
+            IconTextRow(
+                resId = R.drawable.ic_article_outline_24,
+                text = community.description,
+                modifier = Modifier.weight(1f, fill = false)
             )
         }
 
@@ -80,7 +90,7 @@ fun CommunityInfoSheet(
                     R.string.last_post,
                     DateUtils.formatDateTime(
                         LocalContext.current,
-                        community.lastPost.toLong(),
+                        community.lastPost.toLong() * 1000,
                         DateUtils.FORMAT_SHOW_DATE
                     )
                 )
@@ -102,16 +112,16 @@ fun CommunityInfoSheet(
 }
 
 @Composable
-fun IconTextRow(@DrawableRes resId: Int, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun IconTextRow(@DrawableRes resId: Int, text: String, modifier: Modifier = Modifier) {
+    Row(modifier = modifier) {
         Icon(
             painter = painterResource(resId),
             contentDescription = null,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier
+                .padding(top = 2.dp, end = 8.dp)
+                .size(20.dp),
             tint = MaterialTheme.colors.secondary
         )
-
-        Spacer(modifier = Modifier.width(5.dp))
 
         Text(
             text = text,

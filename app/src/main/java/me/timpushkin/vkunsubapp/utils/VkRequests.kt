@@ -7,6 +7,7 @@ import com.vk.api.sdk.VKApiCallback
 import com.vk.dto.common.id.UserId
 import com.vk.sdk.api.groups.GroupsService
 import com.vk.sdk.api.groups.dto.*
+import com.vk.sdk.api.users.dto.UsersFields
 import com.vk.sdk.api.wall.WallService
 import kotlinx.coroutines.*
 import me.timpushkin.vkunsubapp.model.Community
@@ -44,6 +45,8 @@ fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
 }
 
 fun getExtendedCommunityInfo(community: Community, callback: (Community) -> Unit) {
+    Log.d(TAG, "Getting extended information about $community")
+
     scope.launch {
         val groupId = UserId(community.id)
 
@@ -59,14 +62,15 @@ fun getExtendedCommunityInfo(community: Community, callback: (Community) -> Unit
             VK.executeSync(
                 GroupsService().groupsGetMembers(
                     groupId = groupId.value.toString(10),
-                    filter = GroupsGetMembersFilter.FRIENDS
+                    filter = GroupsGetMembersFilter.FRIENDS,
+                    fields = listOf(UsersFields.SEX) // any field is required -- API crashes otherwise
                 )
             )
         }
         val wallGet = async(Dispatchers.IO) {
             VK.executeSync(
                 WallService().wallGet(
-                    ownerId = groupId,
+                    ownerId = UserId(-groupId.value),
                     count = 1
                 )
             )
@@ -79,9 +83,10 @@ fun getExtendedCommunityInfo(community: Community, callback: (Community) -> Unit
                 description = groupsGetById.await().firstOrNull()?.description ?: "",
                 lastPost = wallGet.await().items.firstOrNull()?.date
             )
+            Log.d(TAG, "Got extended information: $extendedCommunity")
             launch(Dispatchers.Main) { callback(extendedCommunity) }
         } catch (e: IOException) {
-            Log.e(TAG, "Failed to get extended information about ${community.id}", e)
+            Log.e(TAG, "Failed to get extended information about $community", e)
         }
     }
 }

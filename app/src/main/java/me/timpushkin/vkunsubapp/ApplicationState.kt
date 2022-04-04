@@ -7,14 +7,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunsubapp.model.Community
+import me.timpushkin.vkunsubapp.utils.getExtendedCommunityInfo
 import me.timpushkin.vkunsubapp.utils.getFollowingCommunities
 
 class ApplicationState : ViewModel() {
-    var displayedCommunity by mutableStateOf(Community.EMPTY)
-
     private var _communities by mutableStateOf(emptyList<Community>())
     val communities: List<Community>
         get() = _communities
+
+    private var _displayedCommunity by mutableStateOf(Community.EMPTY)
+    val displayedCommunity: Community
+        get() = _displayedCommunity
 
     private var _selectedCommunities by mutableStateOf(emptySet<Community>())
     val selectedCommunities: Set<Community>
@@ -39,10 +42,23 @@ class ApplicationState : ViewModel() {
             }
         }
 
-        displayedCommunity = Community.EMPTY
         _communities = emptyList()
+        _displayedCommunity = Community.EMPTY
         _selectedCommunities = emptySet()
         _mode = newMode
+    }
+
+    fun display(community: Community) {
+        _displayedCommunity = community
+        if (community.isExtended()) return
+
+        getExtendedCommunityInfo(community) { extendedCommunity ->
+            _displayedCommunity = extendedCommunity
+            viewModelScope.launch {
+                _communities =
+                    _communities.map { if (it.id == community.id) extendedCommunity else it }
+            }
+        }
     }
 
     fun selectOrUnselect(community: Community) {

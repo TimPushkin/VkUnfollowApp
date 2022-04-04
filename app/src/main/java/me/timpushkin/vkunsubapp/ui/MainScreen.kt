@@ -89,7 +89,7 @@ fun MainScreen(
                 communities = applicationState.communities,
                 selectedCommunities = applicationState.selectedCommunities,
                 onCellClick = {
-                    applicationState.displayedCommunity = it
+                    applicationState.display(it)
                     scope.launch { sheetState.show() }
                 },
                 onCellLongClick = { applicationState.selectOrUnselect(it) }
