@@ -1,16 +1,18 @@
-package me.timpushkin.vkunsubapp
+package me.timpushkin.vkunsubapp.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunsubapp.model.Community
-import me.timpushkin.vkunsubapp.utils.getExtendedCommunityInfo
-import me.timpushkin.vkunsubapp.utils.getFollowingCommunities
+import me.timpushkin.vkunsubapp.utils.*
+import me.timpushkin.vkunsubapp.utils.storage.Repository
 
-class ApplicationState : ViewModel() {
+class ApplicationState(private val repository: Repository) : ViewModel() {
     var isWaitingManageResponse by mutableStateOf(false)
 
     private var _communities by mutableStateOf(emptyList<Community>())
@@ -45,11 +47,14 @@ class ApplicationState : ViewModel() {
     fun updateCommunities() {
         when (mode) {
             Mode.AUTH -> {}
-            Mode.FOLLOWING -> {
-                getFollowingCommunities { communities -> _communities = communities }
-            }
+            Mode.FOLLOWING -> getFollowingCommunities { _communities = it }
             Mode.UNFOLLOWED -> {
-                _communities = emptyList() /* TODO: fetch unfollowed from database */
+                viewModelScope.launch(Dispatchers.IO) {
+                    val unfollowedCommunitiesIds = repository.getUnfollowedCommunitiesIds()
+                    launch(Dispatchers.Main) {
+                        getCommunitiesById(unfollowedCommunitiesIds) { _communities = it }
+                    }
+                }
             }
         }
     }
@@ -77,5 +82,10 @@ class ApplicationState : ViewModel() {
 
     fun unselectAll() {
         _selectedCommunities = emptyList()
+    }
+
+    class Factory(private val repository: Repository) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            modelClass.getConstructor(Repository::class.java).newInstance(repository)
     }
 }

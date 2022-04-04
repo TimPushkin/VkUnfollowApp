@@ -18,6 +18,11 @@ private const val TAG = "VkRequests"
 
 private val scope = CoroutineScope(Dispatchers.IO)
 
+private fun groupScreenNameToUri(screenName: String?): Uri =
+    screenName?.let { Uri.parse("https://vk.com/$it") } ?: Uri.EMPTY
+
+private fun photoAddressToUri(address: String?): Uri = address?.let { Uri.parse(it) } ?: Uri.EMPTY
+
 fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
     val userId = VK.getUserId()
     Log.d(TAG, "Getting communities followed by ${userId.value}")
@@ -31,8 +36,8 @@ fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
                 for (group in result.items) communities += Community(
                     id = group.id.value,
                     name = group.name ?: "",
-                    uri = group.screenName?.let { Uri.parse("https://vk.com/$it") } ?: Uri.EMPTY,
-                    photoUri = group.photo200?.let { Uri.parse(it) } ?: Uri.EMPTY
+                    uri = groupScreenNameToUri(group.screenName),
+                    photoUri = photoAddressToUri(group.photo200)
                 )
 
                 Log.i(TAG, "Got ${communities.size} communities followed by ${userId.value}")
@@ -42,6 +47,41 @@ fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
 
             override fun fail(error: Exception) {
                 Log.e(TAG, "Failed to get communities followed by ${userId.value}", error)
+            }
+        }
+    )
+}
+
+fun getCommunitiesById(ids: Iterable<Long>, callback: (List<Community>) -> Unit) {
+    Log.d(TAG, "Getting information about communities $ids")
+
+    val groupIds = ids.map { UserId(it) }
+    if (groupIds.isEmpty()) {
+        Log.d(TAG, "No IDs provided")
+        callback(emptyList())
+        return
+    }
+
+    VK.execute(
+        GroupsService().groupsGetById(groupIds = groupIds),
+        object : VKApiCallback<List<GroupsGroupFull>> {
+            override fun success(result: List<GroupsGroupFull>) {
+                val communities = mutableListOf<Community>()
+
+                for (group in result) communities += Community(
+                    id = group.id.value,
+                    name = group.name ?: "",
+                    uri = groupScreenNameToUri(group.screenName),
+                    photoUri = photoAddressToUri(group.photo200)
+                )
+
+                Log.i(TAG, "Got ${communities.size} communities from ids $ids")
+
+                callback(communities)
+            }
+
+            override fun fail(error: Exception) {
+                Log.e(TAG, "Failed to get communities by ids $ids", error)
             }
         }
     )
@@ -107,6 +147,11 @@ fun manageCommunities(
     callback: (List<Community>) -> Unit
 ) {
     Log.d(TAG, "Performing $action on ${communities.map { it.name }}")
+
+    if (communities.isEmpty()) {
+        Log.d(TAG, "No communities provided")
+        callback(emptyList())
+    }
 
     val service = GroupsService()
     val command: (groupId: UserId) -> VKRequest<BaseOkResponse> = when (action) {

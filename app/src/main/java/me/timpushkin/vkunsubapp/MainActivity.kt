@@ -12,15 +12,25 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.auth.VKAuthenticationResult
 import com.vk.api.sdk.auth.VKScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import me.timpushkin.vkunsubapp.ui.ApplicationState
 import me.timpushkin.vkunsubapp.ui.MainScreen
 import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
 import me.timpushkin.vkunsubapp.utils.CommunityAction
+import me.timpushkin.vkunsubapp.utils.storage.LocalStorage
+import me.timpushkin.vkunsubapp.utils.storage.Repository
 import me.timpushkin.vkunsubapp.utils.manageCommunities
 
 private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
-    private val applicationState: ApplicationState by viewModels()
+    private val repository: Repository = LocalStorage
+    private val applicationState: ApplicationState by viewModels {
+        ApplicationState.Factory(repository)
+    }
+    private val ioScope = CoroutineScope(Dispatchers.IO)
 
     private val authLauncher = VK.login(this) { result ->
         when (result) {
@@ -35,13 +45,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!VK.isLoggedIn()) {
-            Log.i(TAG, "Launching authorization")
-            authLauncher.launch(listOf(VKScope.GROUPS))
-        } else {
+        if (VK.isLoggedIn()) {
             Log.i(TAG, "Already authorized")
             if (applicationState.mode == ApplicationState.Mode.AUTH)
                 applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+        } else {
+            Log.i(TAG, "Launching authorization")
+            authLauncher.launch(listOf(VKScope.GROUPS))
         }
 
         setContent {
@@ -70,36 +80,39 @@ class MainActivity : ComponentActivity() {
             return
         }
 
+        Log.i(TAG, "Managing selected communities")
+
         when (applicationState.mode) {
             ApplicationState.Mode.AUTH ->
                 Log.e(TAG, "Cannot apply selected communities when unauthorized")
-            ApplicationState.Mode.FOLLOWING -> {
-                Log.i(TAG, "Unfollowing ${applicationState.selectedCommunities.size} communities")
+            ApplicationState.Mode.FOLLOWING -> performCommunityAction(CommunityAction.UNFOLLOW)
+            ApplicationState.Mode.UNFOLLOWED -> performCommunityAction(CommunityAction.FOLLOW)
+        }
+    }
 
-                applicationState.isWaitingManageResponse = true
-                manageCommunities(
-                    applicationState.selectedCommunities,
-                    CommunityAction.UNFOLLOW
-                ) {
-                    // TODO: add to unfollowed
-                    applicationState.unselectAll()
-                    applicationState.updateCommunities()
-                    applicationState.isWaitingManageResponse = false
+    private fun performCommunityAction(action: CommunityAction) {
+        applicationState.isWaitingManageResponse = true
+        manageCommunities(
+            applicationState.selectedCommunities,
+            action
+        ) { managed ->
+            ioScope.launch {
+                val ids = mutableSetOf<Long>().apply { managed.forEach { add(it.id) } }
+                when (action) {
+                    CommunityAction.FOLLOW -> repository.removeUnfollowedCommunitiesIds(ids)
+                    CommunityAction.UNFOLLOW -> repository.putUnfollowedCommunitiesIds(ids)
                 }
-            }
-            ApplicationState.Mode.UNFOLLOWED -> {
-                Log.i(TAG, "Following ${applicationState.selectedCommunities.size} communities")
-
-                applicationState.isWaitingManageResponse = true
-                manageCommunities(
-                    applicationState.selectedCommunities,
-                    CommunityAction.FOLLOW
-                ) {
+                launch(Dispatchers.Main) {
                     applicationState.unselectAll()
                     applicationState.updateCommunities()
                     applicationState.isWaitingManageResponse = false
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        repository.commit() // Not inside a coroutine scope as not to be killed committing
+        super.onPause()
     }
 }
