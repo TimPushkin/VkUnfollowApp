@@ -16,4 +16,5 @@
     <string name="unfollow_communities">Unfollow communities</string>
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
+    <string name="request_in_progress">A request is in progress</string>
 </resources>

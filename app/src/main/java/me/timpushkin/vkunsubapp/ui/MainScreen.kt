@@ -21,7 +21,7 @@ import me.timpushkin.vkunsubapp.R
 @Composable
 fun MainScreen(
     applicationState: ApplicationState,
-    onApplySelectedCommunities: () -> Unit = {}
+    onManageSelectedCommunities: () -> Unit = {}
 ) {
     if (applicationState.mode == ApplicationState.Mode.AUTH) return
 
@@ -81,8 +81,9 @@ fun MainScreen(
             bottomBar = {
                 BottomBar(
                     mode = applicationState.mode,
+                    showButton = !applicationState.isWaitingManageResponse,
                     selectedNum = applicationState.selectedCommunities.size,
-                    onButtonClick = onApplySelectedCommunities
+                    onButtonClick = onManageSelectedCommunities
                 )
             }
         ) {
@@ -93,7 +94,7 @@ fun MainScreen(
                     applicationState.display(it)
                     scope.launch { sheetState.show() }
                 },
-                onCellLongClick = { applicationState.selectOrUnselect(it) }
+                onCellLongClick = { applicationState.switchSelection(it) }
             )
         }
     }
@@ -191,7 +192,12 @@ fun ModeSwitchButton(
 }
 
 @Composable
-fun BottomBar(mode: ApplicationState.Mode, selectedNum: Int, onButtonClick: () -> Unit) {
+fun BottomBar(
+    mode: ApplicationState.Mode,
+    showButton: Boolean,
+    selectedNum: Int,
+    onButtonClick: () -> Unit
+) {
     AnimatedVisibility(
         visible = selectedNum > 0,
         enter = fadeIn(),
@@ -201,21 +207,39 @@ fun BottomBar(mode: ApplicationState.Mode, selectedNum: Int, onButtonClick: () -
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.background
         ) {
-            CounterButton(
-                number = selectedNum,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                onClick = onButtonClick
-            ) {
-                Text(
-                    text =
-                    when (mode) {
-                        ApplicationState.Mode.AUTH -> ""
-                        ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
-                        ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
+            Crossfade(targetState = showButton) { showButton ->
+                if (showButton) {
+                    CounterButton(
+                        number = selectedNum,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        onClick = onButtonClick
+                    ) {
+                        Text(
+                            text =
+                            when (mode) {
+                                ApplicationState.Mode.AUTH -> ""
+                                ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
+                                ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
+                            }
+                        )
                     }
-                )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.request_in_progress),
+                            color = MaterialTheme.colors.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
     }

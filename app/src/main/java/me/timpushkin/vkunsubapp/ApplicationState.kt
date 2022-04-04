@@ -11,6 +11,8 @@ import me.timpushkin.vkunsubapp.utils.getExtendedCommunityInfo
 import me.timpushkin.vkunsubapp.utils.getFollowingCommunities
 
 class ApplicationState : ViewModel() {
+    var isWaitingManageResponse by mutableStateOf(false)
+
     private var _communities by mutableStateOf(emptyList<Community>())
     val communities: List<Community>
         get() = _communities
@@ -19,8 +21,8 @@ class ApplicationState : ViewModel() {
     val displayedCommunity: Community
         get() = _displayedCommunity
 
-    private var _selectedCommunities by mutableStateOf(emptySet<Community>())
-    val selectedCommunities: Set<Community>
+    private var _selectedCommunities by mutableStateOf(emptyList<Community>())
+    val selectedCommunities: List<Community>
         get() = _selectedCommunities
 
     private var _mode by mutableStateOf(Mode.AUTH)
@@ -32,7 +34,16 @@ class ApplicationState : ViewModel() {
     fun setMode(newMode: Mode) {
         if (mode == newMode) return
 
-        when (newMode) {
+        _communities = emptyList()
+        _displayedCommunity = Community.EMPTY
+        _selectedCommunities = emptyList()
+        _mode = newMode
+
+        updateCommunities()
+    }
+
+    fun updateCommunities() {
+        when (mode) {
             Mode.AUTH -> {}
             Mode.FOLLOWING -> {
                 getFollowingCommunities { communities -> _communities = communities }
@@ -41,11 +52,6 @@ class ApplicationState : ViewModel() {
                 _communities = emptyList() /* TODO: fetch unfollowed from database */
             }
         }
-
-        _communities = emptyList()
-        _displayedCommunity = Community.EMPTY
-        _selectedCommunities = emptySet()
-        _mode = newMode
     }
 
     fun display(community: Community) {
@@ -61,11 +67,15 @@ class ApplicationState : ViewModel() {
         }
     }
 
-    fun selectOrUnselect(community: Community) {
+    fun switchSelection(community: Community) {
         viewModelScope.launch {
             _selectedCommunities =
                 if (community in selectedCommunities) selectedCommunities - community
                 else selectedCommunities + community
         }
+    }
+
+    fun unselectAll() {
+        _selectedCommunities = emptyList()
     }
 }
