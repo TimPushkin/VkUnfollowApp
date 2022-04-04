@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,6 +27,15 @@ fun MainScreen(
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val scaffoldState = with(LocalDensity.current) {
+        remember {
+            CollapsibleTopScaffoldState(
+                minTopBarHeightPx = 56.dp.toPx(),
+                maxTopBarHeightPx = 168.dp.toPx()
+            )
+        }
+    }
+
     val uriHandler = LocalUriHandler.current
 
     ModalBottomSheetLayout(
@@ -47,8 +57,7 @@ fun MainScreen(
     ) {
         CollapsibleTopScaffold(
             modifier = Modifier.fillMaxSize(),
-            minTopBarHeight = 56.dp,
-            maxTopBarHeight = 168.dp,
+            state = scaffoldState,
             expandedTopBar = {
                 BigTopBar(
                     title = when (applicationState.mode) {
@@ -66,7 +75,7 @@ fun MainScreen(
                     }
                 )
             },
-            shrunkTopBar = {
+            collapsedTopBar = {
                 SmallTopBar(
                     actions = {
                         ModeSwitchButton(
@@ -97,6 +106,8 @@ fun MainScreen(
             )
         }
     }
+
+    key(applicationState.mode) { scaffoldState.expand() }
 }
 
 @Composable

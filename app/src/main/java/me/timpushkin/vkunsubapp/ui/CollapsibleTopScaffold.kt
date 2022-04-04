@@ -13,16 +13,13 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun CollapsibleTopScaffold(
     modifier: Modifier = Modifier,
-    maxTopBarHeight: Dp = 0.dp,
-    minTopBarHeight: Dp = 0.dp,
+    state: CollapsibleTopScaffoldState = CollapsibleTopScaffoldState(),
     expandedTopBar: @Composable BoxScope.() -> Unit = {},
-    shrunkTopBar: @Composable BoxScope.() -> Unit = {},
+    collapsedTopBar: @Composable BoxScope.() -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -30,19 +27,17 @@ fun CollapsibleTopScaffold(
         modifier = modifier,
         bottomBar = bottomBar
     ) { contentPadding ->
-        val minTopBarHeightPx = with(LocalDensity.current) { minTopBarHeight.roundToPx().toFloat() }
-        val maxTopBarHeightPx = with(LocalDensity.current) { maxTopBarHeight.roundToPx().toFloat() }
 
-        var topBarHeightPx by remember { mutableStateOf(maxTopBarHeightPx) }
-        var contentOffsetPx by remember { mutableStateOf(maxTopBarHeightPx) }
         val nestedScrollConnection = remember {
             object : NestedScrollConnection {
                 override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    if (contentOffsetPx >= minTopBarHeightPx)
-                        topBarHeightPx = (topBarHeightPx + available.y / 1.5f)
-                            .coerceIn(minTopBarHeightPx, maxTopBarHeightPx)
-                    contentOffsetPx = (contentOffsetPx + available.y / 1.5f)
-                        .coerceIn(0f, maxTopBarHeightPx)
+                    state.apply {
+                        if (contentOffsetPx >= minTopBarHeightPx)
+                            topBarHeightPx = (topBarHeightPx + available.y / 1.5f)
+                                .coerceIn(minTopBarHeightPx, maxTopBarHeightPx)
+                        contentOffsetPx = (contentOffsetPx + available.y / 1.5f)
+                            .coerceIn(0f, maxTopBarHeightPx)
+                    }
                     return Offset.Zero
                 }
             }
@@ -54,11 +49,11 @@ fun CollapsibleTopScaffold(
                 .nestedScroll(nestedScrollConnection)
                 .then(modifier)
         ) {
-            val topBarHeight = with(LocalDensity.current) { topBarHeightPx.toDp() }
-            val isExpanded = topBarHeightPx > minTopBarHeightPx
+            val topBarHeight = with(LocalDensity.current) { state.topBarHeightPx.toDp() }
+            val isExpanded = state.topBarHeightPx > state.minTopBarHeightPx
 
             Box(
-                modifier = Modifier.offset(y = with(LocalDensity.current) { contentOffsetPx.toDp() }),
+                modifier = Modifier.offset(y = with(LocalDensity.current) { state.contentOffsetPx.toDp() }),
                 content = content
             )
 
@@ -66,7 +61,7 @@ fun CollapsibleTopScaffold(
                 modifier = Modifier
                     .height(topBarHeight)
                     .align(Alignment.TopStart),
-                content = shrunkTopBar
+                content = collapsedTopBar
             )
 
             AnimatedVisibility(
@@ -82,5 +77,23 @@ fun CollapsibleTopScaffold(
                 )
             }
         }
+    }
+}
+
+class CollapsibleTopScaffoldState(
+    val minTopBarHeightPx: Float = 0f,
+    val maxTopBarHeightPx: Float = 0f
+) {
+    var topBarHeightPx by mutableStateOf(maxTopBarHeightPx)
+    var contentOffsetPx by mutableStateOf(maxTopBarHeightPx)
+
+    fun expand() {
+        topBarHeightPx = maxTopBarHeightPx
+        contentOffsetPx = maxTopBarHeightPx
+    }
+
+    fun collapse() {
+        topBarHeightPx = minTopBarHeightPx
+        contentOffsetPx = minTopBarHeightPx
     }
 }
