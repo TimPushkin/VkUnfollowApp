@@ -56,16 +56,10 @@ class MainActivity : ComponentActivity() {
 
                 MainScreen(
                     applicationState = applicationState,
-                    onOpenCommunity = this::openCommunity,
                     onApplySelectedCommunities = this::applySelectedCommunities
                 )
             }
         }
-    }
-
-    private fun openCommunity() {
-        Log.i(TAG, "Opening ${applicationState.displayedCommunity}")
-        // TODO
     }
 
     private fun applySelectedCommunities() {

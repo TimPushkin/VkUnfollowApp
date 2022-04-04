@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -20,19 +21,19 @@ import me.timpushkin.vkunsubapp.R
 @Composable
 fun MainScreen(
     applicationState: ApplicationState,
-    onOpenCommunity: () -> Unit = {},
     onApplySelectedCommunities: () -> Unit = {}
 ) {
     if (applicationState.mode == ApplicationState.Mode.AUTH) return
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val uriHandler = LocalUriHandler.current
 
     ModalBottomSheetLayout(
         sheetContent = {
             CommunityInfoSheet(
                 community = applicationState.displayedCommunity,
-                onOpenClick = onOpenCommunity,
+                onOpenClick = { uriHandler.openUri(applicationState.displayedCommunity.uri.toString()) },
                 onCloseClick = { scope.launch { sheetState.hide() } }
             )
         },

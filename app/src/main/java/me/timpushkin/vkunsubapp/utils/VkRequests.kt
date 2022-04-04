@@ -30,6 +30,7 @@ fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
             for (group in result.items) communities += Community(
                 id = group.id.value,
                 name = group.name ?: "",
+                uri = group.screenName?.let { Uri.parse("https://vk.com/$it") } ?: Uri.EMPTY,
                 photoUri = group.photo200?.let { Uri.parse(it) } ?: Uri.EMPTY
             )
 
