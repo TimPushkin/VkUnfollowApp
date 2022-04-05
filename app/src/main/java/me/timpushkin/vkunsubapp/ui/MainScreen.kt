@@ -98,11 +98,11 @@ fun MainScreen(
             CommunitiesGrid(
                 communities = applicationState.communities,
                 selectedCommunities = applicationState.selectedCommunities,
-                onCellClick = {
+                onCellClick = { applicationState.switchSelection(it) },
+                onCellLongClick = {
                     applicationState.display(it)
                     scope.launch { sheetState.show() }
-                },
-                onCellLongClick = { applicationState.switchSelection(it) }
+                }
             )
         }
     }
