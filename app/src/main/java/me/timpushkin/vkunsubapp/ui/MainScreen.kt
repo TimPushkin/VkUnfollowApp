@@ -28,12 +28,10 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scaffoldState = with(LocalDensity.current) {
-        remember {
-            CollapsibleTopScaffoldState(
-                minTopBarHeightPx = 56.dp.toPx(),
-                maxTopBarHeightPx = 168.dp.toPx()
-            )
-        }
+        rememberCollapsibleTopScaffoldState(
+            minTopBarHeightPx = 56.dp.toPx(),
+            maxTopBarHeightPx = 168.dp.toPx()
+        )
     }
 
     val uriHandler = LocalUriHandler.current
@@ -69,8 +67,14 @@ fun MainScreen(
                     actions = {
                         ModeSwitchButton(
                             mode = applicationState.mode,
-                            onSwitchedToFollowing = { applicationState.setMode(ApplicationState.Mode.FOLLOWING) },
-                            onSwitchToUnfollowed = { applicationState.setMode(ApplicationState.Mode.UNFOLLOWED) }
+                            onSwitchedToFollowing = {
+                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+                                scaffoldState.expand()
+                            },
+                            onSwitchToUnfollowed = {
+                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                                scaffoldState.expand()
+                            }
                         )
                     }
                 )
@@ -80,8 +84,14 @@ fun MainScreen(
                     actions = {
                         ModeSwitchButton(
                             mode = applicationState.mode,
-                            onSwitchedToFollowing = { applicationState.setMode(ApplicationState.Mode.FOLLOWING) },
-                            onSwitchToUnfollowed = { applicationState.setMode(ApplicationState.Mode.UNFOLLOWED) }
+                            onSwitchedToFollowing = {
+                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+                                scaffoldState.expand()
+                            },
+                            onSwitchToUnfollowed = {
+                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                                scaffoldState.expand()
+                            }
                         )
                     }
                 )
@@ -106,8 +116,6 @@ fun MainScreen(
             )
         }
     }
-
-    key(applicationState.mode) { scaffoldState.expand() }
 }
 
 @Composable

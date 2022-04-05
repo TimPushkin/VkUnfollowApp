@@ -4,9 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -20,12 +18,14 @@ fun CommunitiesGrid(
     communities: List<Community>,
     selectedCommunities: Iterable<Community>,
     modifier: Modifier = Modifier,
+    state: LazyListState = rememberLazyListState(),
     onCellClick: (Community) -> Unit = {},
     onCellLongClick: (Community) -> Unit = {}
 ) {
     LazyVerticalGrid(
         cells = GridCells.Adaptive(dimensionResource(R.dimen.community_photo_size)),
         modifier = modifier,
+        state = state,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         items(communities) { community ->
