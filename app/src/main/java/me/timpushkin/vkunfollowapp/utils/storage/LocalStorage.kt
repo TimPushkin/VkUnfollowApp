@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.utils.storage
+package me.timpushkin.vkunfollowapp.utils.storage
 
 import android.content.Context
 import android.util.Log

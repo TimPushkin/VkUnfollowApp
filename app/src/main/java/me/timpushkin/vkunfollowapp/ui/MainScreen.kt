@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import me.timpushkin.vkunsubapp.R
+import me.timpushkin.vkunfollowapp.R
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

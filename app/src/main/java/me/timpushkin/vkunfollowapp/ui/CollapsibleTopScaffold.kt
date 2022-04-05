@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VkUnsubApp</string>
+    <string name="app_name">VkUnfollowApp</string>
     <string name="communities">Сообщества</string>
     <plurals name="subscribers_num">
         <item quantity="one">%d подписчик</item>

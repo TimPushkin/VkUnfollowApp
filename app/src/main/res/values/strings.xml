@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VkUnsubApp</string>
+    <string name="app_name">VkUnfollowApp</string>
     <string name="communities">Communities</string>
     <plurals name="subscribers_num">
         <item quantity="one">%d subscriber</item>

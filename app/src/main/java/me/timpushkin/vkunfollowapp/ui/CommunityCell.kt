@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import android.net.Uri
 import android.view.View
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.facebook.drawee.generic.RoundingParams
 import com.facebook.drawee.view.SimpleDraweeView
-import me.timpushkin.vkunsubapp.R
+import me.timpushkin.vkunfollowapp.R
 import kotlin.math.sqrt
 
 @Composable

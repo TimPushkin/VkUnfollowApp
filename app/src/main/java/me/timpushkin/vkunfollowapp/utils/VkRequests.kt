@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.utils
+package me.timpushkin.vkunfollowapp.utils
 
 import android.net.Uri
 import android.util.Log
@@ -12,7 +12,7 @@ import com.vk.sdk.api.groups.dto.*
 import com.vk.sdk.api.users.dto.UsersFields
 import com.vk.sdk.api.wall.WallService
 import kotlinx.coroutines.*
-import me.timpushkin.vkunsubapp.model.Community
+import me.timpushkin.vkunfollowapp.model.Community
 
 private const val TAG = "VkRequests"
 

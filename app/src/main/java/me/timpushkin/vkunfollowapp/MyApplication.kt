@@ -1,8 +1,8 @@
-package me.timpushkin.vkunsubapp
+package me.timpushkin.vkunfollowapp
 
 import android.app.Application
 import com.facebook.drawee.backends.pipeline.Fresco
-import me.timpushkin.vkunsubapp.utils.storage.LocalStorage
+import me.timpushkin.vkunfollowapp.utils.storage.LocalStorage
 
 class MyApplication : Application() {
     override fun onCreate() {

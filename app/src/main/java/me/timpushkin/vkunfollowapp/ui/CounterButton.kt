@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
+import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
 
 @Composable
 fun CounterButton(

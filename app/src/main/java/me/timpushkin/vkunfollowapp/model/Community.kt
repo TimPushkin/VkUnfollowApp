@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.model
+package me.timpushkin.vkunfollowapp.model
 
 import android.net.Uri
 

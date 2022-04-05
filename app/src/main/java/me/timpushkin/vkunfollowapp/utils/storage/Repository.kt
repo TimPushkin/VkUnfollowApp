@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.utils.storage
+package me.timpushkin.vkunfollowapp.utils.storage
 
 interface Repository {
     fun getUnfollowedCommunitiesIds(): Set<Long>

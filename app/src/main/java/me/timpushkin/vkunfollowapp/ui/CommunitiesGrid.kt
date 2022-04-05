@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -9,8 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
-import me.timpushkin.vkunsubapp.model.Community
-import me.timpushkin.vkunsubapp.R
+import me.timpushkin.vkunfollowapp.model.Community
+import me.timpushkin.vkunfollowapp.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

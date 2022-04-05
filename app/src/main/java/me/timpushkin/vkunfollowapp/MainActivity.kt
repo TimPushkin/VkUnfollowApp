@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp
+package me.timpushkin.vkunfollowapp
 
 import android.os.Bundle
 import android.util.Log
@@ -15,13 +15,13 @@ import com.vk.api.sdk.auth.VKScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.timpushkin.vkunsubapp.ui.ApplicationState
-import me.timpushkin.vkunsubapp.ui.MainScreen
-import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
-import me.timpushkin.vkunsubapp.utils.CommunityAction
-import me.timpushkin.vkunsubapp.utils.storage.LocalStorage
-import me.timpushkin.vkunsubapp.utils.storage.Repository
-import me.timpushkin.vkunsubapp.utils.manageCommunities
+import me.timpushkin.vkunfollowapp.ui.ApplicationState
+import me.timpushkin.vkunfollowapp.ui.MainScreen
+import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
+import me.timpushkin.vkunfollowapp.utils.CommunityAction
+import me.timpushkin.vkunfollowapp.utils.storage.LocalStorage
+import me.timpushkin.vkunfollowapp.utils.storage.Repository
+import me.timpushkin.vkunfollowapp.utils.manageCommunities
 
 private const val TAG = "MainActivity"
 

@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui.theme
+package me.timpushkin.vkunfollowapp.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

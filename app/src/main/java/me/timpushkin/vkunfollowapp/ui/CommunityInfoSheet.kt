@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import android.text.format.DateUtils
 import androidx.annotation.DrawableRes
@@ -15,9 +15,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.timpushkin.vkunsubapp.R
-import me.timpushkin.vkunsubapp.model.Community
-import me.timpushkin.vkunsubapp.ui.theme.VkUnsubAppTheme
+import me.timpushkin.vkunfollowapp.R
+import me.timpushkin.vkunfollowapp.model.Community
+import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
 import java.util.*
 
 @Composable

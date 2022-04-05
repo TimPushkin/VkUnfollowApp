@@ -1,4 +1,4 @@
-package me.timpushkin.vkunsubapp.ui
+package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,9 +8,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.timpushkin.vkunsubapp.model.Community
-import me.timpushkin.vkunsubapp.utils.*
-import me.timpushkin.vkunsubapp.utils.storage.Repository
+import me.timpushkin.vkunfollowapp.model.Community
+import me.timpushkin.vkunfollowapp.utils.*
+import me.timpushkin.vkunfollowapp.utils.storage.Repository
 
 class ApplicationState(private val repository: Repository) : ViewModel() {
     var isWaitingManageResponse by mutableStateOf(false)
