@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -39,14 +40,15 @@ fun CommunityCell(
         Box(contentAlignment = Alignment.Center) {
             val primaryColor = MaterialTheme.colors.primary.toArgb()
             val borderSize = dimensionResource(R.dimen.community_photo_border_size).value
+            val localContext = LocalContext.current
 
             AndroidView(
                 factory = { context ->
                     (View.inflate(context, R.layout.community_photo, null) as SimpleDraweeView)
-                        .apply { setImageURI(photoUri, context) }
                 },
                 modifier = Modifier.aspectRatio(1f),
                 update = { drawee ->
+                    drawee.setImageURI(photoUri, localContext)
                     drawee.hierarchy.roundingParams = RoundingParams
                         .asCircle()
                         .setBorder(primaryColor, if (isSelected) borderSize else 0f)
