@@ -20,6 +20,9 @@
 # hide the original source file name.
 -renamesourcefileattribute SourceFile
 
+# Keep all app classes
+-keep class me.timpushkin.vkunfollowapp.** { *; }
+
 # Remove logging (https://www.guardsquare.com/manual/configuration/examples#logging)
 -assumenosideeffects class android.util.Log {
     public static int v(...);

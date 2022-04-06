@@ -29,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false // TODO: fix crash when minifyEnabled is true
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
