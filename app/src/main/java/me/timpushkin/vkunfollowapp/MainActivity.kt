@@ -15,28 +15,32 @@ import com.vk.api.sdk.auth.VKScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.timpushkin.vkunfollowapp.model.Community
 import me.timpushkin.vkunfollowapp.ui.ApplicationState
+import me.timpushkin.vkunfollowapp.ui.ApplicationState.Mode
 import me.timpushkin.vkunfollowapp.ui.MainScreen
 import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
-import me.timpushkin.vkunfollowapp.utils.CommunityAction
+import me.timpushkin.vkunfollowapp.utils.*
 import me.timpushkin.vkunfollowapp.utils.storage.LocalStorage
 import me.timpushkin.vkunfollowapp.utils.storage.Repository
-import me.timpushkin.vkunfollowapp.utils.manageCommunities
 
 private const val TAG = "MainActivity"
 
+private val PERMISSIONS = listOf(VKScope.GROUPS)
+
 class MainActivity : ComponentActivity() {
+    private val appState: ApplicationState by viewModels()
     private val repository: Repository = LocalStorage
-    private val applicationState: ApplicationState by viewModels {
-        ApplicationState.Factory(repository)
-    }
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
+    private var isAuthLaunched = false
     private val authLauncher = VK.login(this) { result ->
+        isAuthLaunched = false
         when (result) {
             is VKAuthenticationResult.Success -> {
                 Log.i(TAG, "Authorization succeeded")
-                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
+                appState.mode = Mode.FOLLOWING
+                updateCommunities()
             }
             is VKAuthenticationResult.Failed -> Log.i(TAG, "Authorization failed")
         }
@@ -45,14 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (VK.isLoggedIn()) {
-            Log.i(TAG, "Already authorized")
-            if (applicationState.mode == ApplicationState.Mode.AUTH)
-                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-        } else {
-            Log.i(TAG, "Launching authorization")
-            authLauncher.launch(listOf(VKScope.GROUPS))
-        }
+        updateCommunities() // Also requests authorization when needed
 
         setContent {
             VkUnsubAppTheme {
@@ -67,34 +64,94 @@ class MainActivity : ComponentActivity() {
                 }
 
                 MainScreen(
-                    applicationState = applicationState,
+                    appState = appState,
+                    onModeSwitch = this::switchMode,
+                    onDisplayCommunity = this::displayCommunity,
                     onManageSelectedCommunities = this::manageSelectedCommunities
                 )
             }
         }
     }
 
+    private fun handleAuth() {
+        if (isAuthLaunched) Log.d(TAG, "Authorization is already launched")
+        else {
+            Log.i(TAG, "Launching authorization")
+            isAuthLaunched = true
+            authLauncher.launch(PERMISSIONS)
+        }
+    }
+
+    private fun switchMode() {
+        Log.d(TAG, "Switching application mode (current is ${appState.mode})")
+
+        when (appState.mode) {
+            Mode.FOLLOWING -> appState.mode = Mode.UNFOLLOWED
+            Mode.UNFOLLOWED -> appState.mode = Mode.FOLLOWING
+        }
+        Log.i(TAG, "Switched to ${appState.mode}")
+
+        updateCommunities()
+    }
+
+    private fun updateCommunities() {
+        Log.d(TAG, "Updating displayed communities")
+
+        when (appState.mode) {
+            Mode.FOLLOWING -> getFollowingCommunities(
+                onAuthError = this::handleAuth
+            ) { appState.communities = it }
+            Mode.UNFOLLOWED -> {
+                ioScope.launch {
+                    val unfollowedCommunitiesIds = repository.getUnfollowedCommunitiesIds()
+                    launch(Dispatchers.Main) {
+                        getCommunitiesById(
+                            ids = unfollowedCommunitiesIds,
+                            onAuthError = this@MainActivity::handleAuth
+                        ) { appState.communities = it }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun displayCommunity(community: Community) {
+        appState.displayedCommunity = community
+        if (community.isExtended()) return
+
+        getExtendedCommunityInfo(
+            community = community,
+            onAuthError = this::handleAuth
+        ) { extendedCommunity ->
+            appState.displayedCommunity = extendedCommunity
+            ioScope.launch {
+                val withExtended =
+                    appState.communities.map { if (it.id == community.id) extendedCommunity else it }
+                launch(Dispatchers.Main) { appState.communities = withExtended }
+            }
+        }
+    }
+
     private fun manageSelectedCommunities() {
-        if (applicationState.isWaitingManageResponse) {
+        if (appState.isWaitingManageResponse) {
             Log.i(TAG, "Already waiting for a community management response")
             return
         }
 
         Log.i(TAG, "Managing selected communities")
 
-        when (applicationState.mode) {
-            ApplicationState.Mode.AUTH ->
-                Log.e(TAG, "Cannot apply selected communities when unauthorized")
-            ApplicationState.Mode.FOLLOWING -> performCommunityAction(CommunityAction.UNFOLLOW)
-            ApplicationState.Mode.UNFOLLOWED -> performCommunityAction(CommunityAction.FOLLOW)
+        when (appState.mode) {
+            Mode.FOLLOWING -> performCommunityAction(CommunityAction.UNFOLLOW)
+            Mode.UNFOLLOWED -> performCommunityAction(CommunityAction.FOLLOW)
         }
     }
 
     private fun performCommunityAction(action: CommunityAction) {
-        applicationState.isWaitingManageResponse = true
+        appState.isWaitingManageResponse = true
         manageCommunities(
-            applicationState.selectedCommunities,
-            action
+            communities = appState.selectedCommunities,
+            action = action,
+            onAuthError = this::handleAuth
         ) { managed ->
             ioScope.launch {
                 val ids = mutableSetOf<Long>().apply { managed.forEach { add(it.id) } }
@@ -103,9 +160,9 @@ class MainActivity : ComponentActivity() {
                     CommunityAction.UNFOLLOW -> repository.putUnfollowedCommunitiesIds(ids)
                 }
                 launch(Dispatchers.Main) {
-                    applicationState.unselectAll()
-                    applicationState.updateCommunities()
-                    applicationState.isWaitingManageResponse = false
+                    appState.unselectAll()
+                    updateCommunities()
+                    appState.isWaitingManageResponse = false
                 }
             }
         }

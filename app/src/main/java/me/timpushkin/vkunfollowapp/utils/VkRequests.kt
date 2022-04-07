@@ -4,6 +4,8 @@ import android.net.Uri
 import android.util.Log
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
+import com.vk.api.sdk.exceptions.VKApiCodes
+import com.vk.api.sdk.exceptions.VKApiExecutionException
 import com.vk.api.sdk.requests.VKRequest
 import com.vk.dto.common.id.UserId
 import com.vk.sdk.api.base.dto.BaseOkResponse
@@ -11,6 +13,7 @@ import com.vk.sdk.api.groups.GroupsService
 import com.vk.sdk.api.groups.dto.*
 import com.vk.sdk.api.users.dto.UsersFields
 import com.vk.sdk.api.wall.WallService
+import com.vk.sdk.api.wall.dto.WallGetResponse
 import kotlinx.coroutines.*
 import me.timpushkin.vkunfollowapp.model.Community
 
@@ -18,12 +21,21 @@ private const val TAG = "VkRequests"
 
 private val scope = CoroutineScope(Dispatchers.IO)
 
+private fun Exception.isAuthError(): Boolean =
+    this is VKApiExecutionException && code == VKApiCodes.CODE_AUTHORIZATION_FAILED
+
 private fun groupScreenNameToUri(screenName: String?): Uri =
     screenName?.let { Uri.parse("https://vk.com/$it") } ?: Uri.EMPTY
 
 private fun photoAddressToUri(address: String?): Uri = address?.let { Uri.parse(it) } ?: Uri.EMPTY
 
-fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
+fun getFollowingCommunities(onAuthError: () -> Unit = {}, callback: (List<Community>) -> Unit) {
+    if (!VK.isLoggedIn()) {
+        Log.i(TAG, "Cannot get followed communities: not authorized")
+        onAuthError()
+        return
+    }
+
     val userId = VK.getUserId()
     Log.d(TAG, "Getting communities followed by ${userId.value}")
 
@@ -47,18 +59,29 @@ fun getFollowingCommunities(callback: (List<Community>) -> Unit) {
 
             override fun fail(error: Exception) {
                 Log.e(TAG, "Failed to get communities followed by ${userId.value}", error)
+                if (error.isAuthError()) onAuthError()
             }
         }
     )
 }
 
-fun getCommunitiesById(ids: Iterable<Long>, callback: (List<Community>) -> Unit) {
+fun getCommunitiesById(
+    ids: Iterable<Long>,
+    onAuthError: () -> Unit = {},
+    callback: (List<Community>) -> Unit
+) {
     Log.d(TAG, "Getting information about communities $ids")
 
     val groupIds = ids.map { UserId(it) }
     if (groupIds.isEmpty()) {
         Log.d(TAG, "No IDs provided")
         callback(emptyList())
+        return
+    }
+
+    if (!VK.isLoggedIn()) {
+        Log.i(TAG, "Cannot information about the communities: not authorized")
+        onAuthError()
         return
     }
 
@@ -82,41 +105,58 @@ fun getCommunitiesById(ids: Iterable<Long>, callback: (List<Community>) -> Unit)
 
             override fun fail(error: Exception) {
                 Log.e(TAG, "Failed to get communities by ids $ids", error)
+                if (error.isAuthError()) onAuthError()
             }
         }
     )
 }
 
-fun getExtendedCommunityInfo(community: Community, callback: (Community) -> Unit) {
+fun getExtendedCommunityInfo(
+    community: Community,
+    onAuthError: () -> Unit = {},
+    callback: (Community) -> Unit
+) {
     Log.d(TAG, "Getting extended information about ${community.name}")
+
+    if (!VK.isLoggedIn()) {
+        Log.i(TAG, "Cannot get extended community information: not authorized")
+        onAuthError()
+        return
+    }
 
     scope.launch {
         val groupId = UserId(community.id)
 
-        val groupsGetById = async(Dispatchers.IO) {
-            VK.executeSync(
-                GroupsService().groupsGetById(
-                    groupId = groupId,
-                    fields = listOf(GroupsFields.DESCRIPTION, GroupsFields.MEMBERS_COUNT)
+        val groupsGetById: Deferred<List<GroupsGroupFull>>
+        val groupsGetMembers: Deferred<GroupsGetMembersFieldsResponse>
+        val wallGet: Deferred<WallGetResponse>
+
+        supervisorScope {
+            groupsGetById = async(Dispatchers.IO) {
+                VK.executeSync(
+                    GroupsService().groupsGetById(
+                        groupId = groupId,
+                        fields = listOf(GroupsFields.DESCRIPTION, GroupsFields.MEMBERS_COUNT)
+                    )
                 )
-            )
-        }
-        val groupsGetMembers = async(Dispatchers.IO) {
-            VK.executeSync(
-                GroupsService().groupsGetMembers(
-                    groupId = groupId.value.toString(10),
-                    filter = GroupsGetMembersFilter.FRIENDS,
-                    fields = listOf(UsersFields.SEX) // any field is required -- API crashes otherwise
+            }
+            groupsGetMembers = async(Dispatchers.IO) {
+                VK.executeSync(
+                    GroupsService().groupsGetMembers(
+                        groupId = groupId.value.toString(10),
+                        filter = GroupsGetMembersFilter.FRIENDS,
+                        fields = listOf(UsersFields.SEX) // any field is required -- API crashes otherwise
+                    )
                 )
-            )
-        }
-        val wallGet = async(Dispatchers.IO) {
-            VK.executeSync(
-                WallService().wallGet(
-                    ownerId = UserId(-groupId.value),
-                    count = 1
+            }
+            wallGet = async(Dispatchers.IO) {
+                VK.executeSync(
+                    WallService().wallGet(
+                        ownerId = UserId(-groupId.value),
+                        count = 1
+                    )
                 )
-            )
+            }
         }
 
         try {
@@ -135,6 +175,7 @@ fun getExtendedCommunityInfo(community: Community, callback: (Community) -> Unit
                 "Failed to get extended information about ${community.name}, id ${community.id}",
                 e
             )
+            if (e.isAuthError()) launch(Dispatchers.Main) { onAuthError() }
         }
     }
 }
@@ -144,6 +185,7 @@ enum class CommunityAction { FOLLOW, UNFOLLOW }
 fun manageCommunities(
     communities: List<Community>,
     action: CommunityAction,
+    onAuthError: () -> Unit = {},
     callback: (List<Community>) -> Unit
 ) {
     Log.d(TAG, "Performing $action on ${communities.map { it.name }}")
@@ -151,6 +193,12 @@ fun manageCommunities(
     if (communities.isEmpty()) {
         Log.d(TAG, "No communities provided")
         callback(emptyList())
+    }
+
+    if (!VK.isLoggedIn()) {
+        Log.i(TAG, "Cannot manage the communities: not authorized")
+        onAuthError()
+        return
     }
 
     val service = GroupsService()
@@ -161,11 +209,12 @@ fun manageCommunities(
 
     scope.launch {
         val results = mutableListOf<Deferred<BaseOkResponse>>()
-        for (community in communities) {
+        for (community in communities) supervisorScope {
             results += async(Dispatchers.IO) { VK.executeSync(command(UserId(community.id))) }
         }
 
         val successful = mutableListOf<Community>()
+        var authErrorOccured = false
         results.forEachIndexed { i, result ->
             val community = communities[i]
             try {
@@ -185,6 +234,7 @@ fun manageCommunities(
                     "Failed to to perform $action on ${community.name}, id ${community.id}",
                     e
                 )
+                if (e.isAuthError()) authErrorOccured = true
             }
         }
 
@@ -193,6 +243,9 @@ fun manageCommunities(
             "Successfully performed $action on ${successful.size} out of ${communities.size} communities"
         )
 
-        launch(Dispatchers.Main) { callback(successful) }
+        launch(Dispatchers.Main) {
+            if (authErrorOccured) onAuthError()
+            callback(successful)
+        }
     }
 }

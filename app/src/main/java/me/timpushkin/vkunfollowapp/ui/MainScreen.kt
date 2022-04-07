@@ -16,15 +16,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunfollowapp.R
+import me.timpushkin.vkunfollowapp.model.Community
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(
-    applicationState: ApplicationState,
-    onManageSelectedCommunities: () -> Unit = {}
+    appState: ApplicationState,
+    onModeSwitch: () -> Unit,
+    onDisplayCommunity: (Community) -> Unit,
+    onManageSelectedCommunities: () -> Unit
 ) {
-    if (applicationState.mode == ApplicationState.Mode.AUTH) return
-
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scaffoldState = with(LocalDensity.current) {
@@ -39,8 +40,8 @@ fun MainScreen(
     ModalBottomSheetLayout(
         sheetContent = {
             CommunityInfoSheet(
-                community = applicationState.displayedCommunity,
-                onOpenClick = { uriHandler.openUri(applicationState.displayedCommunity.uri.toString()) },
+                community = appState.displayedCommunity,
+                onOpenClick = { uriHandler.openUri(appState.displayedCommunity.uri.toString()) },
                 onCloseClick = { scope.launch { sheetState.hide() } }
             )
         },
@@ -58,21 +59,16 @@ fun MainScreen(
             state = scaffoldState,
             expandedTopBar = {
                 BigTopBar(
-                    title = when (applicationState.mode) {
-                        ApplicationState.Mode.AUTH -> ""
+                    title = when (appState.mode) {
                         ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow_communities)
                         ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow_communities)
                     },
                     description = stringResource(R.string.hold_to_see_more),
                     actions = {
                         ModeSwitchButton(
-                            mode = applicationState.mode,
-                            onSwitchedToFollowing = {
-                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-                                scaffoldState.expand()
-                            },
-                            onSwitchToUnfollowed = {
-                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                            mode = appState.mode,
+                            onClick = {
+                                onModeSwitch()
                                 scaffoldState.expand()
                             }
                         )
@@ -83,13 +79,9 @@ fun MainScreen(
                 SmallTopBar(
                     actions = {
                         ModeSwitchButton(
-                            mode = applicationState.mode,
-                            onSwitchedToFollowing = {
-                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-                                scaffoldState.expand()
-                            },
-                            onSwitchToUnfollowed = {
-                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                            mode = appState.mode,
+                            onClick = {
+                                onModeSwitch()
                                 scaffoldState.expand()
                             }
                         )
@@ -98,19 +90,19 @@ fun MainScreen(
             },
             bottomBar = {
                 BottomBar(
-                    mode = applicationState.mode,
-                    showButton = !applicationState.isWaitingManageResponse,
-                    selectedNum = applicationState.selectedCommunities.size,
+                    mode = appState.mode,
+                    showButton = !appState.isWaitingManageResponse,
+                    selectedNum = appState.selectedCommunities.size,
                     onButtonClick = onManageSelectedCommunities
                 )
             }
         ) {
             CommunitiesGrid(
-                communities = applicationState.communities,
-                selectedCommunities = applicationState.selectedCommunities,
-                onCellClick = { applicationState.switchSelection(it) },
+                communities = appState.communities,
+                selectedCommunities = appState.selectedCommunities,
+                onCellClick = { appState.switchSelectionOf(it) },
                 onCellLongClick = {
-                    applicationState.display(it)
+                    onDisplayCommunity(it)
                     scope.launch { sheetState.show() }
                 }
             )
@@ -177,22 +169,9 @@ fun SmallTopBar(
 }
 
 @Composable
-fun ModeSwitchButton(
-    mode: ApplicationState.Mode,
-    onSwitchedToFollowing: () -> Unit,
-    onSwitchToUnfollowed: () -> Unit
-) {
-    IconButton(
-        onClick = {
-            when (mode) {
-                ApplicationState.Mode.AUTH -> {}
-                ApplicationState.Mode.FOLLOWING -> onSwitchToUnfollowed()
-                ApplicationState.Mode.UNFOLLOWED -> onSwitchedToFollowing()
-            }
-        }
-    ) {
+fun ModeSwitchButton(mode: ApplicationState.Mode, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
         when (mode) {
-            ApplicationState.Mode.AUTH -> {}
             ApplicationState.Mode.FOLLOWING ->
                 Icon(
                     painter = painterResource(R.drawable.ic_clock_outline_28),
@@ -235,9 +214,7 @@ fun BottomBar(
                         onClick = onButtonClick
                     ) {
                         Text(
-                            text =
-                            when (mode) {
-                                ApplicationState.Mode.AUTH -> ""
+                            text = when (mode) {
                                 ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
                                 ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
                             }
