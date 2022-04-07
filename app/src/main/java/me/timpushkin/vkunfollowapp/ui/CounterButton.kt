@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
+import me.timpushkin.vkunfollowapp.ui.theme.VkFollowAppTheme
 
 @Composable
 fun CounterButton(
@@ -72,7 +72,7 @@ fun CounterButton(
 @Preview
 @Composable
 fun CounterButtonPreview() {
-    VkUnsubAppTheme {
+    VkFollowAppTheme {
         CounterButton(number = 5) {
             Text(text = "Testing text")
         }

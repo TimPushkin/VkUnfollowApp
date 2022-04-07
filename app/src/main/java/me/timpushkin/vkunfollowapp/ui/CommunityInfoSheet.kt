@@ -17,8 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.timpushkin.vkunfollowapp.R
 import me.timpushkin.vkunfollowapp.model.Community
-import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
-import java.util.*
+import me.timpushkin.vkunfollowapp.ui.theme.VkFollowAppTheme
 
 @Composable
 fun CommunityInfoSheet(
@@ -133,7 +132,7 @@ fun IconTextRow(@DrawableRes resId: Int, text: String, modifier: Modifier = Modi
 @Preview
 @Composable
 fun CommunityInfoSheetPreview() {
-    VkUnsubAppTheme {
+    VkFollowAppTheme {
         CommunityInfoSheet(
             community = Community.EMPTY.copy(
                 name = "Unnamed community",

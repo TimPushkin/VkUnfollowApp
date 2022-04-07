@@ -19,7 +19,7 @@ import me.timpushkin.vkunfollowapp.model.Community
 import me.timpushkin.vkunfollowapp.ui.ApplicationState
 import me.timpushkin.vkunfollowapp.ui.ApplicationState.Mode
 import me.timpushkin.vkunfollowapp.ui.MainScreen
-import me.timpushkin.vkunfollowapp.ui.theme.VkUnsubAppTheme
+import me.timpushkin.vkunfollowapp.ui.theme.VkFollowAppTheme
 import me.timpushkin.vkunfollowapp.utils.*
 import me.timpushkin.vkunfollowapp.utils.storage.LocalStorage
 import me.timpushkin.vkunfollowapp.utils.storage.Repository
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         updateCommunities() // Also requests authorization when needed
 
         setContent {
-            VkUnsubAppTheme {
+            VkFollowAppTheme {
                 window.statusBarColor = MaterialTheme.colors.background.toArgb()
                 window.navigationBarColor = MaterialTheme.colors.surface.toArgb()
 
