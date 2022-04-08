@@ -1,6 +1,9 @@
 package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
@@ -8,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -23,6 +27,7 @@ import me.timpushkin.vkunfollowapp.model.Community
 fun MainScreen(
     appState: ApplicationState,
     onModeSwitch: () -> Unit,
+    onReloadCommunities: () -> Unit,
     onDisplayCommunity: (Community) -> Unit,
     onManageSelectedCommunities: () -> Unit
 ) {
@@ -72,12 +77,14 @@ fun MainScreen(
                                 scaffoldState.expand()
                             }
                         )
+                        ReloadButton(onClick = onReloadCommunities)
                     }
                 )
             },
             collapsedTopBar = {
                 SmallTopBar(
                     actions = {
+                        ReloadButton(onClick = onReloadCommunities)
                         ModeSwitchButton(
                             mode = appState.mode,
                             onClick = {
@@ -114,7 +121,7 @@ fun MainScreen(
 fun BigTopBar(
     title: String,
     description: String,
-    actions: @Composable RowScope.() -> Unit
+    actions: @Composable ColumnScope.() -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -122,10 +129,12 @@ fun BigTopBar(
             .background(MaterialTheme.colors.background)
             .padding(start = 4.dp, top = 4.dp, end = 4.dp)
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .align(Alignment.TopEnd),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
             content = actions
         )
 
@@ -166,6 +175,40 @@ fun SmallTopBar(
         actions = actions,
         backgroundColor = MaterialTheme.colors.background
     )
+}
+
+@Composable
+fun ReloadButton(onClick: () -> Unit) {
+    var shouldRotate by remember { mutableStateOf(false) }
+    val rotation = remember { Animatable(0f) }
+
+    if (shouldRotate) {
+        LaunchedEffect(Unit) {
+            rotation.animateTo(
+                targetValue = 360f,
+                animationSpec = tween(
+                    durationMillis = 600,
+                    easing = LinearOutSlowInEasing
+                )
+            )
+            rotation.snapTo(0f)
+            shouldRotate = false
+        }
+    }
+
+    IconButton(
+        onClick = {
+            onClick()
+            shouldRotate = true
+        }
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_refresh_outline_28),
+            contentDescription = "Refresh",
+            modifier = Modifier.rotate(rotation.value),
+            tint = MaterialTheme.colors.secondary
+        )
+    }
 }
 
 @Composable

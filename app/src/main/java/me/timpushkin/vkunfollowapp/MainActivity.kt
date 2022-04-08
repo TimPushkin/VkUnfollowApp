@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     appState = appState,
                     onModeSwitch = this::switchMode,
+                    onReloadCommunities = this::updateCommunities,
                     onDisplayCommunity = this::displayCommunity,
                     onManageSelectedCommunities = this::manageSelectedCommunities
                 )
