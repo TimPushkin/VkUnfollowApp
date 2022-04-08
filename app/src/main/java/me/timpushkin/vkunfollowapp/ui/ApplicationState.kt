@@ -23,6 +23,8 @@ class ApplicationState : ViewModel() {
 
     enum class Mode { FOLLOWING, UNFOLLOWED }
 
+    fun isClear(): Boolean = displayedCommunity == Community.EMPTY && _selectedCommunities.isEmpty()
+
     fun setCommunities(communities: List<Community>, clearInteractions: Boolean = true) {
         if (clearInteractions) {
             displayedCommunity = Community.EMPTY

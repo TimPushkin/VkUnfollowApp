@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        updateCommunities() // Also requests authorization when needed
+        if (appState.isClear()) updateCommunities() // Also requests authorization when needed
 
         setContent {
             VkFollowAppTheme {
