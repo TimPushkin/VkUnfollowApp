@@ -8,6 +8,7 @@ import com.vk.api.sdk.exceptions.VKApiCodes
 import com.vk.api.sdk.exceptions.VKApiExecutionException
 import com.vk.api.sdk.requests.VKRequest
 import com.vk.dto.common.id.UserId
+import com.vk.sdk.api.base.dto.BaseBoolInt
 import com.vk.sdk.api.base.dto.BaseOkResponse
 import com.vk.sdk.api.groups.GroupsService
 import com.vk.sdk.api.groups.dto.*
@@ -214,27 +215,39 @@ fun manageCommunities(
         }
 
         val successful = mutableListOf<Community>()
-        var authErrorOccured = false
-        results.forEachIndexed { i, result ->
-            val community = communities[i]
-            try {
-                when (result.await()) {
-                    BaseOkResponse.OK -> successful += community
-                    else -> { // There are no other values in the current API, but in case some are added
+        var authErrorOccurred = false
+
+        coroutineScope {
+            results.forEachIndexed { i, result ->
+                val community = communities[i]
+                try {
+                    if (result.await() == BaseOkResponse.OK) successful += community
+                    else // There are no other values in the current API, but in case some are added
                         Log.e(
                             TAG,
                             "Failed to perform $action on ${community.name}, id ${community.id}: " +
-                                    "API returned $result"
+                                    "API returned ${result.await()}"
                         )
-                    }
+                } catch (e: Exception) {
+                    Log.e(
+                        TAG,
+                        "Failed to to perform $action on ${community.name}, id ${community.id}",
+                        e
+                    )
+
+                    if (e.isAuthError()) authErrorOccurred = true
+                    else
+                        launch(Dispatchers.IO) {
+                            val isFollowing = isFollowing(community)
+                            if (isFollowing && action == CommunityAction.FOLLOW) {
+                                Log.i(TAG, "Already following ${community.name}")
+                                successful += community
+                            } else if (!isFollowing && action == CommunityAction.UNFOLLOW) {
+                                Log.i(TAG, "Already unfollowed ${community.name}")
+                                successful += community
+                            }
+                        }
                 }
-            } catch (e: Exception) {
-                Log.e(
-                    TAG,
-                    "Failed to to perform $action on ${community.name}, id ${community.id}",
-                    e
-                )
-                if (e.isAuthError()) authErrorOccured = true
             }
         }
 
@@ -244,8 +257,31 @@ fun manageCommunities(
         )
 
         launch(Dispatchers.Main) {
-            if (authErrorOccured) onAuthError()
+            if (authErrorOccurred) onAuthError()
             callback(successful)
         }
     }
+}
+
+private fun isFollowing(community: Community): Boolean {
+    val userId = VK.getUserId()
+
+    val isMember =
+        try {
+            VK.executeSync(
+                GroupsService().groupsIsMember(
+                    groupId = community.id.toString(),
+                    userId = userId
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(
+                TAG,
+                "Failed to determine membership of $userId in ${community.name}, id ${community.id}",
+                e
+            )
+            BaseBoolInt.NO
+        }
+
+    return isMember == BaseBoolInt.YES
 }
