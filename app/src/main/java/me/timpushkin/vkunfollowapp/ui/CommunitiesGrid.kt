@@ -51,7 +51,7 @@ fun CommunitiesGrid(
             item(span = { GridItemSpan(Int.MAX_VALUE) }) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Text(
-                        text = stringResource(R.string.no_communities),
+                        text = stringResource(R.string.nothing_here),
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(top = dimensionResource(R.dimen.community_photo_size)),

@@ -17,5 +17,5 @@
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
     <string name="request_in_progress">A request is in progress</string>
-    <string name="no_communities">No communities found…</string>
+    <string name="nothing_here">Nothing here…</string>
 </resources>

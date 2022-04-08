@@ -22,5 +22,5 @@
     <string name="follow">Подписаться</string>
     <string name="unfollow">Отписаться</string>
     <string name="request_in_progress">Запрос обрабатывается</string>
-    <string name="no_communities">Сообществ не найдено…</string>
+    <string name="nothing_here">Здесь ничего нет…</string>
 </resources>
