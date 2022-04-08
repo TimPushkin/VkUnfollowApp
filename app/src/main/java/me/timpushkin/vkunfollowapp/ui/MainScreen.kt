@@ -99,15 +99,14 @@ fun MainScreen(
                 BottomBar(
                     mode = appState.mode,
                     showButton = !appState.isWaitingManageResponse,
-                    selectedNum = appState.selectedCommunities.size,
+                    selectedNum = appState.selectedNum,
                     onButtonClick = onManageSelectedCommunities
                 )
             }
         ) {
             CommunitiesGrid(
                 communities = appState.communities,
-                selectedCommunities = appState.selectedCommunities,
-                onCellClick = { appState.switchSelectionOf(it) },
+                onCellClick = appState::switchSelectionOf,
                 onCellLongClick = {
                     onDisplayCommunity(it)
                     scope.launch { sheetState.show() }

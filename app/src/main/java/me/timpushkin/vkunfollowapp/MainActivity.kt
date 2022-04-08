@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (appState.isClear()) updateCommunities() // Also requests authorization when needed
+        if (appState.isClear) updateCommunities() // Also requests authorization when needed
 
         setContent {
             VkFollowAppTheme {
@@ -120,7 +120,7 @@ class MainActivity : ComponentActivity() {
 
     private fun displayCommunity(community: Community) {
         appState.displayedCommunity = community
-        if (community.isExtended()) return
+        if (community.isExtended) return
 
         getExtendedCommunityInfo(
             community = community,
@@ -128,8 +128,9 @@ class MainActivity : ComponentActivity() {
         ) { extendedCommunity ->
             appState.displayedCommunity = extendedCommunity
             ioScope.launch {
-                val withExtended =
-                    appState.communities.map { if (it.id == community.id) extendedCommunity else it }
+                val withExtended = appState.communities.map {
+                    if (it.id == community.id) it.extendedFrom(extendedCommunity) else it
+                }
                 launch(Dispatchers.Main) { appState.setCommunities(withExtended, false) }
             }
         }
@@ -152,7 +153,7 @@ class MainActivity : ComponentActivity() {
     private fun performCommunityAction(action: CommunityAction) {
         appState.isWaitingManageResponse = true
         manageCommunities(
-            communities = appState.selectedCommunities,
+            communities = appState.communities.filter { it.isSelected },
             action = action,
             onAuthError = this::handleAuth
         ) { managed ->

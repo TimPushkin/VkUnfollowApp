@@ -22,7 +22,6 @@ import me.timpushkin.vkunfollowapp.R
 @Composable
 fun CommunitiesGrid(
     communities: List<Community>,
-    selectedCommunities: Iterable<Community>,
     modifier: Modifier = Modifier,
     state: LazyListState = rememberLazyListState(),
     onCellClick: (Community) -> Unit = {},
@@ -39,7 +38,7 @@ fun CommunitiesGrid(
                 CommunityCell(
                     name = community.name,
                     photoUri = community.photoUri,
-                    isSelected = community in selectedCommunities,
+                    isSelected = community.isSelected,
                     modifier = Modifier
                         .padding(5.dp)
                         .combinedClickable(
