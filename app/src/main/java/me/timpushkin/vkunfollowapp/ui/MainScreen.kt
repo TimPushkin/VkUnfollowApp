@@ -22,6 +22,9 @@ import kotlinx.coroutines.launch
 import me.timpushkin.vkunfollowapp.R
 import me.timpushkin.vkunfollowapp.model.Community
 
+/**
+ * Main screen of the application.
+ */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(
@@ -117,7 +120,7 @@ fun MainScreen(
 }
 
 @Composable
-fun BigTopBar(
+private fun BigTopBar(
     title: String,
     description: String,
     actions: @Composable ColumnScope.() -> Unit
@@ -161,7 +164,7 @@ fun BigTopBar(
 }
 
 @Composable
-fun SmallTopBar(
+private fun SmallTopBar(
     actions: @Composable RowScope.() -> Unit
 ) {
     TopAppBar(
@@ -177,7 +180,7 @@ fun SmallTopBar(
 }
 
 @Composable
-fun ReloadButton(onClick: () -> Unit) {
+private fun ReloadButton(onClick: () -> Unit) {
     var shouldRotate by remember { mutableStateOf(false) }
     val rotation = remember { Animatable(0f) }
 
@@ -211,7 +214,7 @@ fun ReloadButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun ModeSwitchButton(mode: ApplicationState.Mode, onClick: () -> Unit) {
+private fun ModeSwitchButton(mode: ApplicationState.Mode, onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         when (mode) {
             ApplicationState.Mode.FOLLOWING ->
@@ -231,7 +234,7 @@ fun ModeSwitchButton(mode: ApplicationState.Mode, onClick: () -> Unit) {
 }
 
 @Composable
-fun BottomBar(
+private fun BottomBar(
     mode: ApplicationState.Mode,
     showButton: Boolean,
     selectedNum: Int,

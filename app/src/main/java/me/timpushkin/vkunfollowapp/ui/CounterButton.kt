@@ -16,6 +16,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.timpushkin.vkunfollowapp.ui.theme.VkFollowAppTheme
 
+/**
+ * Button with a counter.
+ */
 @Composable
 fun CounterButton(
     number: Int,
@@ -71,7 +74,7 @@ fun CounterButton(
 
 @Preview
 @Composable
-fun CounterButtonPreview() {
+private fun CounterButtonPreview() {
     VkFollowAppTheme {
         CounterButton(number = 5) {
             Text(text = "Testing text")

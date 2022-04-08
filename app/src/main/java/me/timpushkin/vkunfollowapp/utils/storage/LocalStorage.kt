@@ -19,6 +19,9 @@ object LocalStorage : Repository {
     private lateinit var storageFile: File
     private lateinit var unfollowedCommunitiesIds: MutableSet<Long>
 
+    /**
+     * Initializes the storage. Must be called before using it.
+     */
     @Suppress("UNCHECKED_CAST")
     @Synchronized
     fun initialize(context: Context) {

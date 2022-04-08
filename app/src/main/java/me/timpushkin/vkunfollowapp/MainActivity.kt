@@ -28,6 +28,9 @@ private const val TAG = "MainActivity"
 
 private val PERMISSIONS = listOf(VKScope.GROUPS)
 
+/**
+ * Main activity of the application.
+ */
 class MainActivity : ComponentActivity() {
     private val appState: ApplicationState by viewModels()
     private val repository: Repository = LocalStorage
@@ -74,6 +77,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Launches VK authorization if it isn't already launched.
+     */
     private fun handleAuth() {
         if (isAuthLaunched) Log.d(TAG, "Authorization is already launched")
         else {
@@ -83,6 +89,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Switches the application mode in [ApplicationState].
+     */
     private fun switchMode() {
         Log.d(TAG, "Switching application mode (current is ${appState.mode})")
 
@@ -95,6 +104,9 @@ class MainActivity : ComponentActivity() {
         updateCommunities()
     }
 
+    /**
+     * Updates communities that are currently shown in the main screen grid.
+     */
     private fun updateCommunities() {
         Log.d(TAG, "Updating displayed communities")
 
@@ -118,6 +130,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Displays a community, showing its extended information on a main screen. Only one community
+     * is displayed at any given moment.
+     */
     private fun displayCommunity(community: Community) {
         appState.displayedCommunity = community
         if (community.isExtended) return
@@ -136,6 +152,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Sends a query to follow or unfollow the currently selected communities.
+     */
     private fun manageSelectedCommunities() {
         if (appState.isWaitingManageResponse) {
             Log.i(TAG, "Already waiting for a community management response")
@@ -150,6 +169,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Helper function to send a follow or unfollow query and update the main screen with the
+     * received result..
+     */
     private fun performCommunityAction(action: CommunityAction) {
         appState.isWaitingManageResponse = true
         manageCommunities(

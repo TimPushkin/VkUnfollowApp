@@ -30,6 +30,14 @@ private fun groupScreenNameToUri(screenName: String?): Uri =
 
 private fun photoAddressToUri(address: String?): Uri = address?.let { Uri.parse(it) } ?: Uri.EMPTY
 
+/**
+ * Get the VK communities followed by the user currently logged in.
+ *
+ * Uses `groups.get` method from VK API.
+ *
+ * @param onAuthError callback to be called if an authorization error occurs.
+ * @param callback callback to be called with the received communities.
+ */
 fun getFollowingCommunities(onAuthError: () -> Unit = {}, callback: (List<Community>) -> Unit) {
     if (!VK.isLoggedIn()) {
         Log.i(TAG, "Cannot get followed communities: not authorized")
@@ -66,6 +74,15 @@ fun getFollowingCommunities(onAuthError: () -> Unit = {}, callback: (List<Commun
     )
 }
 
+/**
+ * Get VK communities by their IDs.
+ *
+ * Uses `groups.getById` method from VK API.
+ *
+ * @param ids IDs of the communities.
+ * @param onAuthError callback to be called if an authorization error occurs.
+ * @param callback callback to be called with the received communities.
+ */
 fun getCommunitiesById(
     ids: Iterable<Long>,
     onAuthError: () -> Unit = {},
@@ -112,6 +129,15 @@ fun getCommunitiesById(
     )
 }
 
+/**
+ * Get extended information about a VK community.
+ *
+ * Uses `groups.getById`, `groups.getMembers` and `wall.get` methods from VK API.
+ *
+ * @param community [Community] that is to be extended.
+ * @param onAuthError callback to be called if an authorization error occurs.
+ * @param callback callback to be called with the extended community.
+ */
 fun getExtendedCommunityInfo(
     community: Community,
     onAuthError: () -> Unit = {},
@@ -181,8 +207,23 @@ fun getExtendedCommunityInfo(
     }
 }
 
+/**
+ * Determines how to manage communities provided to [manageCommunities].
+ */
 enum class CommunityAction { FOLLOW, UNFOLLOW }
 
+/**
+ * Adds VK communities to followed or unfollowed by the currently logged in user..
+ *
+ * Uses `groups.join` or `groups.leave` method from VK API.
+ *
+ * @param communities communities to be followed or unfollowed. If any of them are already in the
+ * requested state, nothing is done to them and their management result is considered a success.
+ * @param action determines what to do with the provided communities (follow them or unfollow).
+ * @param onAuthError callback to be called if an authorization error occurs (it is called only once
+ * after all the communities are processed even if the error occurs multiple times).
+ * @param callback callback to be called with the communities that were successfully managed.
+ */
 fun manageCommunities(
     communities: List<Community>,
     action: CommunityAction,

@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import me.timpushkin.vkunfollowapp.model.Community
 import me.timpushkin.vkunfollowapp.R
 
+/**
+ * Grid that displays [communities][Community] in its [cells][CommunityCell].
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CommunitiesGrid(

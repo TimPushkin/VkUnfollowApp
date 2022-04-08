@@ -19,6 +19,9 @@ import me.timpushkin.vkunfollowapp.R
 import me.timpushkin.vkunfollowapp.model.Community
 import me.timpushkin.vkunfollowapp.ui.theme.VkFollowAppTheme
 
+/**
+ * Sheet that displays additional information about a [Community].
+ */
 @Composable
 fun CommunityInfoSheet(
     community: Community,
@@ -111,7 +114,7 @@ fun CommunityInfoSheet(
 }
 
 @Composable
-fun IconTextRow(@DrawableRes resId: Int, text: String, modifier: Modifier = Modifier) {
+private fun IconTextRow(@DrawableRes resId: Int, text: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
         Icon(
             painter = painterResource(resId),
@@ -131,7 +134,7 @@ fun IconTextRow(@DrawableRes resId: Int, text: String, modifier: Modifier = Modi
 
 @Preview
 @Composable
-fun CommunityInfoSheetPreview() {
+private fun CommunityInfoSheetPreview() {
     VkFollowAppTheme {
         CommunityInfoSheet(
             community = Community.EMPTY.copy(

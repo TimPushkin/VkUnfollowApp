@@ -17,6 +17,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 
+/**
+ * Scaffold with collapsible top bar.
+ */
 @Composable
 fun CollapsibleTopScaffold(
     modifier: Modifier = Modifier,
@@ -84,6 +87,9 @@ fun CollapsibleTopScaffold(
     }
 }
 
+/**
+ * State of [CollapsibleTopScaffold].
+ */
 class CollapsibleTopScaffoldState(
     val minTopBarHeightPx: Float = 0f,
     val maxTopBarHeightPx: Float = 0f
@@ -129,6 +135,9 @@ class CollapsibleTopScaffoldState(
     }
 }
 
+/**
+ * Create a [CollapsibleTopScaffoldState] and remember it.
+ */
 @Composable
 fun rememberCollapsibleTopScaffoldState(
     minTopBarHeightPx: Float = 0f,

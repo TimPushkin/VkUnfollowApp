@@ -26,6 +26,9 @@ import com.facebook.drawee.view.SimpleDraweeView
 import me.timpushkin.vkunfollowapp.R
 import kotlin.math.sqrt
 
+/**
+ * Cell that displays a circular photo and a name.
+ */
 @Composable
 fun CommunityCell(
     name: String,
