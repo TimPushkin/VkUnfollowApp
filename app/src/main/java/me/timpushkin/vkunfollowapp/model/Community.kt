@@ -7,6 +7,7 @@ data class Community(
     val name: String,
     val uri: Uri,
     val photoUri: Uri,
+    val isSelected: Boolean = false,
     val subscribersNum: Int? = null,
     val friendsNum: Int? = null,
     val description: String? = null,
@@ -16,6 +17,14 @@ data class Community(
         val EMPTY = Community(-1, "", Uri.EMPTY, Uri.EMPTY)
     }
 
-    fun isExtended() =
-        subscribersNum != null || friendsNum != null || description != null || lastPost != null
+    val isExtended: Boolean
+        get() = subscribersNum != null || friendsNum != null || description != null || lastPost != null
+
+    fun extendedFrom(other: Community): Community =
+        copy(
+            subscribersNum = other.subscribersNum,
+            friendsNum = other.friendsNum,
+            description = other.description,
+            lastPost = other.lastPost
+        )
 }

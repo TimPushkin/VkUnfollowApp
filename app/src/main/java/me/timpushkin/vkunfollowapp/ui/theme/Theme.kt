@@ -33,7 +33,7 @@ private val DarkColorPalette = darkColors(
 )
 
 @Composable
-fun VkUnsubAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun VkFollowAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colors = if (darkTheme) DarkColorPalette else LightColorPalette
 
     MaterialTheme(

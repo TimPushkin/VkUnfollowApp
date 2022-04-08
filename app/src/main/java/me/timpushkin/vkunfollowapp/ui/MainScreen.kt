@@ -1,6 +1,9 @@
 package me.timpushkin.vkunfollowapp.ui
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
@@ -8,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -16,15 +20,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunfollowapp.R
+import me.timpushkin.vkunfollowapp.model.Community
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(
-    applicationState: ApplicationState,
-    onManageSelectedCommunities: () -> Unit = {}
+    appState: ApplicationState,
+    onModeSwitch: () -> Unit,
+    onReloadCommunities: () -> Unit,
+    onDisplayCommunity: (Community) -> Unit,
+    onManageSelectedCommunities: () -> Unit
 ) {
-    if (applicationState.mode == ApplicationState.Mode.AUTH) return
-
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scaffoldState = with(LocalDensity.current) {
@@ -39,8 +45,8 @@ fun MainScreen(
     ModalBottomSheetLayout(
         sheetContent = {
             CommunityInfoSheet(
-                community = applicationState.displayedCommunity,
-                onOpenClick = { uriHandler.openUri(applicationState.displayedCommunity.uri.toString()) },
+                community = appState.displayedCommunity,
+                onOpenClick = { uriHandler.openUri(appState.displayedCommunity.uri.toString()) },
                 onCloseClick = { scope.launch { sheetState.hide() } }
             )
         },
@@ -58,38 +64,31 @@ fun MainScreen(
             state = scaffoldState,
             expandedTopBar = {
                 BigTopBar(
-                    title = when (applicationState.mode) {
-                        ApplicationState.Mode.AUTH -> ""
+                    title = when (appState.mode) {
                         ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow_communities)
                         ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow_communities)
                     },
                     description = stringResource(R.string.hold_to_see_more),
                     actions = {
                         ModeSwitchButton(
-                            mode = applicationState.mode,
-                            onSwitchedToFollowing = {
-                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-                                scaffoldState.expand()
-                            },
-                            onSwitchToUnfollowed = {
-                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                            mode = appState.mode,
+                            onClick = {
+                                onModeSwitch()
                                 scaffoldState.expand()
                             }
                         )
+                        ReloadButton(onClick = onReloadCommunities)
                     }
                 )
             },
             collapsedTopBar = {
                 SmallTopBar(
                     actions = {
+                        ReloadButton(onClick = onReloadCommunities)
                         ModeSwitchButton(
-                            mode = applicationState.mode,
-                            onSwitchedToFollowing = {
-                                applicationState.setMode(ApplicationState.Mode.FOLLOWING)
-                                scaffoldState.expand()
-                            },
-                            onSwitchToUnfollowed = {
-                                applicationState.setMode(ApplicationState.Mode.UNFOLLOWED)
+                            mode = appState.mode,
+                            onClick = {
+                                onModeSwitch()
                                 scaffoldState.expand()
                             }
                         )
@@ -98,19 +97,18 @@ fun MainScreen(
             },
             bottomBar = {
                 BottomBar(
-                    mode = applicationState.mode,
-                    showButton = !applicationState.isWaitingManageResponse,
-                    selectedNum = applicationState.selectedCommunities.size,
+                    mode = appState.mode,
+                    showButton = !appState.isWaitingManageResponse,
+                    selectedNum = appState.selectedNum,
                     onButtonClick = onManageSelectedCommunities
                 )
             }
         ) {
             CommunitiesGrid(
-                communities = applicationState.communities,
-                selectedCommunities = applicationState.selectedCommunities,
-                onCellClick = { applicationState.switchSelection(it) },
+                communities = appState.communities,
+                onCellClick = appState::switchSelectionOf,
                 onCellLongClick = {
-                    applicationState.display(it)
+                    onDisplayCommunity(it)
                     scope.launch { sheetState.show() }
                 }
             )
@@ -122,7 +120,7 @@ fun MainScreen(
 fun BigTopBar(
     title: String,
     description: String,
-    actions: @Composable RowScope.() -> Unit
+    actions: @Composable ColumnScope.() -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -130,10 +128,12 @@ fun BigTopBar(
             .background(MaterialTheme.colors.background)
             .padding(start = 4.dp, top = 4.dp, end = 4.dp)
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .align(Alignment.TopEnd),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
             content = actions
         )
 
@@ -177,22 +177,43 @@ fun SmallTopBar(
 }
 
 @Composable
-fun ModeSwitchButton(
-    mode: ApplicationState.Mode,
-    onSwitchedToFollowing: () -> Unit,
-    onSwitchToUnfollowed: () -> Unit
-) {
+fun ReloadButton(onClick: () -> Unit) {
+    var shouldRotate by remember { mutableStateOf(false) }
+    val rotation = remember { Animatable(0f) }
+
+    if (shouldRotate) {
+        LaunchedEffect(Unit) {
+            rotation.animateTo(
+                targetValue = 360f,
+                animationSpec = tween(
+                    durationMillis = 600,
+                    easing = LinearOutSlowInEasing
+                )
+            )
+            rotation.snapTo(0f)
+            shouldRotate = false
+        }
+    }
+
     IconButton(
         onClick = {
-            when (mode) {
-                ApplicationState.Mode.AUTH -> {}
-                ApplicationState.Mode.FOLLOWING -> onSwitchToUnfollowed()
-                ApplicationState.Mode.UNFOLLOWED -> onSwitchedToFollowing()
-            }
+            onClick()
+            shouldRotate = true
         }
     ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_refresh_outline_28),
+            contentDescription = "Refresh",
+            modifier = Modifier.rotate(rotation.value),
+            tint = MaterialTheme.colors.secondary
+        )
+    }
+}
+
+@Composable
+fun ModeSwitchButton(mode: ApplicationState.Mode, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
         when (mode) {
-            ApplicationState.Mode.AUTH -> {}
             ApplicationState.Mode.FOLLOWING ->
                 Icon(
                     painter = painterResource(R.drawable.ic_clock_outline_28),
@@ -235,9 +256,7 @@ fun BottomBar(
                         onClick = onButtonClick
                     ) {
                         Text(
-                            text =
-                            when (mode) {
-                                ApplicationState.Mode.AUTH -> ""
+                            text = when (mode) {
                                 ApplicationState.Mode.FOLLOWING -> stringResource(R.string.unfollow)
                                 ApplicationState.Mode.UNFOLLOWED -> stringResource(R.string.follow)
                             }

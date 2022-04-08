@@ -4,88 +4,47 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.timpushkin.vkunfollowapp.model.Community
-import me.timpushkin.vkunfollowapp.utils.*
-import me.timpushkin.vkunfollowapp.utils.storage.Repository
 
-class ApplicationState(private val repository: Repository) : ViewModel() {
+class ApplicationState : ViewModel() {
+    var mode by mutableStateOf(Mode.FOLLOWING)
     var isWaitingManageResponse by mutableStateOf(false)
+    var displayedCommunity by mutableStateOf(Community.EMPTY)
 
     private var _communities by mutableStateOf(emptyList<Community>())
     val communities: List<Community>
         get() = _communities
 
-    private var _displayedCommunity by mutableStateOf(Community.EMPTY)
-    val displayedCommunity: Community
-        get() = _displayedCommunity
+    private var _selectedNum by mutableStateOf(0)
+    val selectedNum: Int
+        get() = _selectedNum
 
-    private var _selectedCommunities by mutableStateOf(emptyList<Community>())
-    val selectedCommunities: List<Community>
-        get() = _selectedCommunities
+    val isClear: Boolean
+        get() = displayedCommunity == Community.EMPTY && selectedNum == 0
 
-    private var _mode by mutableStateOf(Mode.AUTH)
-    val mode: Mode
-        get() = _mode
+    enum class Mode { FOLLOWING, UNFOLLOWED }
 
-    enum class Mode { AUTH, FOLLOWING, UNFOLLOWED }
-
-    fun setMode(newMode: Mode) {
-        if (mode == newMode) return
-
-        _communities = emptyList()
-        _displayedCommunity = Community.EMPTY
-        _selectedCommunities = emptyList()
-        _mode = newMode
-
-        updateCommunities()
+    fun setCommunities(communities: List<Community>, clearInteractions: Boolean = true) {
+        if (clearInteractions) {
+            displayedCommunity = Community.EMPTY
+            _selectedNum = 0
+            _communities = communities.map { it.copy(isSelected = false) }
+        } else _communities = communities
     }
 
-    fun updateCommunities() {
-        when (mode) {
-            Mode.AUTH -> {}
-            Mode.FOLLOWING -> getFollowingCommunities { _communities = it }
-            Mode.UNFOLLOWED -> {
-                viewModelScope.launch(Dispatchers.IO) {
-                    val unfollowedCommunitiesIds = repository.getUnfollowedCommunitiesIds()
-                    launch(Dispatchers.Main) {
-                        getCommunitiesById(unfollowedCommunitiesIds) { _communities = it }
+    fun switchSelectionOf(community: Community) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newCommunities =
+                communities.map {
+                    if (it.id == community.id) it.copy(isSelected = !it.isSelected).also { new ->
+                        if (new.isSelected) _selectedNum++ else _selectedNum--
                     }
+                    else it
                 }
-            }
+            launch(Dispatchers.Main) { _communities = newCommunities }
         }
-    }
-
-    fun display(community: Community) {
-        _displayedCommunity = community
-        if (community.isExtended()) return
-
-        getExtendedCommunityInfo(community) { extendedCommunity ->
-            _displayedCommunity = extendedCommunity
-            viewModelScope.launch {
-                _communities =
-                    _communities.map { if (it.id == community.id) extendedCommunity else it }
-            }
-        }
-    }
-
-    fun switchSelection(community: Community) {
-        viewModelScope.launch {
-            _selectedCommunities =
-                if (community in selectedCommunities) selectedCommunities - community
-                else selectedCommunities + community
-        }
-    }
-
-    fun unselectAll() {
-        _selectedCommunities = emptyList()
-    }
-
-    class Factory(private val repository: Repository) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            modelClass.getConstructor(Repository::class.java).newInstance(repository)
     }
 }
