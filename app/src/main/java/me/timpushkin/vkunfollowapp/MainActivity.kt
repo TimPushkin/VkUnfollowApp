@@ -100,16 +100,18 @@ class MainActivity : ComponentActivity() {
 
         when (appState.mode) {
             Mode.FOLLOWING -> getFollowingCommunities(
-                onAuthError = this::handleAuth
-            ) { appState.communities = it }
+                onAuthError = this::handleAuth,
+                callback = appState::setCommunities
+            )
             Mode.UNFOLLOWED -> {
                 ioScope.launch {
                     val unfollowedCommunitiesIds = repository.getUnfollowedCommunitiesIds()
                     launch(Dispatchers.Main) {
                         getCommunitiesById(
                             ids = unfollowedCommunitiesIds,
-                            onAuthError = this@MainActivity::handleAuth
-                        ) { appState.communities = it }
+                            onAuthError = this@MainActivity::handleAuth,
+                            callback = appState::setCommunities
+                        )
                     }
                 }
             }
@@ -128,7 +130,7 @@ class MainActivity : ComponentActivity() {
             ioScope.launch {
                 val withExtended =
                     appState.communities.map { if (it.id == community.id) extendedCommunity else it }
-                launch(Dispatchers.Main) { appState.communities = withExtended }
+                launch(Dispatchers.Main) { appState.setCommunities(withExtended, false) }
             }
         }
     }
@@ -161,7 +163,6 @@ class MainActivity : ComponentActivity() {
                     CommunityAction.UNFOLLOW -> repository.putUnfollowedCommunitiesIds(ids)
                 }
                 launch(Dispatchers.Main) {
-                    appState.unselectAll()
                     updateCommunities()
                     appState.isWaitingManageResponse = false
                 }
