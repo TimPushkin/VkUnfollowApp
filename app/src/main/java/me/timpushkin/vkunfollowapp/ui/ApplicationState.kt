@@ -9,23 +9,21 @@ import kotlinx.coroutines.launch
 import me.timpushkin.vkunfollowapp.model.Community
 
 class ApplicationState : ViewModel() {
+    var mode by mutableStateOf(Mode.FOLLOWING)
     var isWaitingManageResponse by mutableStateOf(false)
-    var communities by mutableStateOf(emptyList<Community>())
     var displayedCommunity by mutableStateOf(Community.EMPTY)
 
     private var _selectedCommunities by mutableStateOf(emptyList<Community>())
     val selectedCommunities: List<Community>
         get() = _selectedCommunities
 
-    private var _mode by mutableStateOf(Mode.FOLLOWING)
-    var mode: Mode
-        get() = _mode
+    private var _communities by mutableStateOf(emptyList<Community>())
+    var communities: List<Community>
+        get() = _communities
         set(value) {
-            if (_mode == value) return
-            communities = emptyList()
             displayedCommunity = Community.EMPTY
             _selectedCommunities = emptyList()
-            _mode = value
+            _communities = value
         }
 
     enum class Mode { FOLLOWING, UNFOLLOWED }
